@@ -1,0 +1,48 @@
+{
+	"pingbot": {
+		"username": "",
+		"passwd": "",
+		"domain": ""
+	},
+
+	"keytools": {
+		"executorkeyid": "",
+		"executorkeyvcode": "",
+		"alliancelimit": 4.9
+	},
+
+	"groups": {
+		"closedgroups": [
+			"admin",
+			"ping",
+			"capital"
+		],
+		"opengroups": [
+			"dota",
+			"social",
+		],
+		"publicgroups": [
+			"dota"
+		]
+	},
+	"ts3": {
+		"user": "serveradmin",
+		"password": "",
+		"server": "localhost",
+		"port": 10011,
+		"servergroups":	{
+			"full": "2",
+			"ally": "3",
+			"none": "1"
+		}
+	},
+
+	"ldap": {
+		"server": "ldap://localhost/",
+		"admin": "cn=admin,dc=yourdomain,dc=com",
+		"password": "",
+		"basedn": "dc=yourdomain,dc=com",
+		"memberdn": "ou=People,dc=xxpizzaxx,dc=com"
+	}
+
+}
