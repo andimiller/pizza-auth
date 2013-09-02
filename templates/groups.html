@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Groups{% endblock %}
+{% block header %}Groups{% endblock %}
+{% block body %}
+<div class="row">
+	<div class="col-md-4">
+		<div class="panel panel-default">
+			<div class="panel-heading"><h3 class="panel-title">Your Groups</h3></div>
+			<div class="panel-body">
+				<ul class="list-group">
+					{% for group in current_user.get_authgroups() %}
+						<li class="list-group-item">{{ group }}
+						<a class="btn btn-xs btn-danger pull-right" href="/groups/remove/{{ group }}">Remove</a>
+						</li>
+					{% endfor %}
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-4">
+		<div class="panel panel-default">
+			<div class="panel-heading"><h3 class="panel-title">Your Pending Groups</h3></div>
+			<div class="panel-body">
+				<ul class="list-group">
+					{% for group in current_user.get_pending_authgroups() %}
+						<li class="list-group-item">{{ group }}
+							<a class="btn btn-xs btn-danger pull-right" href="/groups/remove/{{ group }}-pending">Remove</a>
+						</li>
+					{% endfor %}
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-4">
+		<div class="panel panel-default">
+			<div class="panel-heading"><h3 class="panel-title">Available Groups</h3></div>
+			<div class="panel-body">
+				Closed Groups
+				<ul class="list-group">
+					{% for group in closed_groups %}
+						<a href="/groups/apply/{{ group }}" class="list-group-item">{{ group }}</a>
+					{% endfor %}
+				Open Groups
+				<ul class="list-group">
+					{% for group in open_groups %}
+						<a href="/groups/apply/{{ group }}" class="list-group-item">{{ group }}</a>
+					{% endfor %}
+				</ul>
+				</ul>
+			</div>
+		</div>
+	</div>
+</div class="row">
+{% endblock %}

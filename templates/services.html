@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Services - PIZZA Auth{% endblock %}
+{% block header %}Services{% endblock %}
+{% block body %}
+<h2>Jabber</h2>
+Your jabber account is enabled as {{ current_user.get_jid() }}
+<h2>Teamspeak 3<a href="#ts3idhelp" role="button" data-toggle="modal"><small>How do I use this?</small></a></h2>
+<table>
+	{% for ts3id in current_user.get_ts3ids() %}
+	<tr><td>{{ ts3id }}</td><td><a class="btn btn-xs btn-danger" href="/services/ts3id/delete/{{ ts3id }}">Delete</a></td>
+	{% endfor %}
+<form class="form-inline span8 offset2 custom-form" method="post" action="/services/ts3id">
+	<tr>
+		<td><input class="form-control" id="ts3id" type="text" name="ts3id" placeholder="New TS3 Identity" style="width:200px"/></td>
+		<td><button type="submit" class="btn btn-primary" value="submit" />Add</button></td>
+</form>
+
+</table>
+
+<a href="/services/ts3id/reload" style="width:100%" class="btn btn-primary btn-lg">Refresh TS3</a>
+
+<div id="ts3idhelp" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="ts3idhelplabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				<h4 class="modal-title">What's a Teamspeak 3 ID?</h4>
+			</div>
+			<div class="modal-body">
+				<p>A Teamspeak 3 ID is an alphanumeric string used to identify your client to the server.</p>
+				<p>You need to enter at least one of these to link your Teamspeak 3 client to your Auth account.</p>
+				<p>You can find yours by opening your Teamspeak 3 client and opening the Identity manager:</p>
+				<img src="/static/img/identityoption.png" />
+				<p>And copying the Unique ID field:</p>
+				<img src="/static/img/ts3id.png" />
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+{% endblock %}

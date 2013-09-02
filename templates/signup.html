@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}xXPIZZAXx User Signup{% endblock %}
+{% block header %}xXPIZZAXx User Signup{% endblock %}
+{% block body %}
+	<div class="row">
+	<form class="well form-inline span8 offset2 custom-form" name="signup" action="/signup" method="post">
+		<div class="control-group">
+			<div class="controls">
+				<h2>Signup - API Key</h2>
+				<p>Please create a key using a mask with <a href="http://community.eveonline.com/support/api-key/CreatePredefined?accessMask=59638024">these</a> permissions or more and enter it here.</p>
+				<div class="clearfix">
+				<label for="keyid">Key ID</label><input class="form-control" id="keyid" type="text" name="keyid"/>
+				</div>
+				<div class="clearfix">
+				<label for="vcode">Verification Code</label><input class="form-control" id="vcode" type="text" name="vcode" />
+				</div>
+			</div>
+			<br />
+			<div class="controls">
+				<button type="submit" class="btn btn-primary" value="submit" />Submit</button>
+			</div>
+	</form>
+	</div class="row">
+{% endblock %}

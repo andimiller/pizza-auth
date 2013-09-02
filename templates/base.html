@@ -1,0 +1,86 @@
+<!doctype html>
+<html>
+	<head>
+		{% block head %}
+		<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.png') }}">
+		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}" />
+		<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-theme.min.css') }}" />
+		<link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="http://ajax.aspnetcdn.com/ajax/jquery.ui/1.8.16/themes/hot-sneaks/jquery-ui.css" />
+		<script src="{{ url_for('static', filename='js/jquery.js') }}"></script>
+		<script src="{{ url_for('static', filename='js/bootstrap.js') }}"></script>
+		<script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+
+		<title>{% block title %}{% endblock %}</title>
+		{% endblock %}
+	</head>
+	<body>
+		<nav class="navbar navbar-default">
+		<div class="container">
+			<div class="navbar-header">
+				<button class="navbar-toggle" data-target=".navbar-collapse" data-toggle="collapse" type="button" data-target=".navbar-ex1-collapse">
+					<span class="sr-only">
+						Toggle navigation
+					</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="/"><i class="icon-key"></i>PIZZA Auth
+			</a></div>
+			<nav class="collapse navbar-collapse navbar-ex1-collapse" role="navigtion">
+				{% if current_user.is_anonymous() %}
+				<form class="navbar-form navbar-right" name="signin" action="/login" method="POST" >
+					<a class="btn btn-default" href="/signup"><i class="icon-user"></i>
+						Register
+					</a>
+					<div class="form-group">
+						<input name="username" type="text" placeholder="Username" class="form-control">
+					</div>
+					<div class="form-group">
+						<input name="password" type="password" placeholder="Password" class="form-control">
+					</div>
+					<input type="hidden" name="next_page" value="{{ next_page }}">
+					<button type="submit" class="btn btn-success">Sign in</button>
+				</form>
+				{% else %}
+				<ul class="nav navbar-nav">
+					<li><a href="/services">Services</a></li>
+					<li><a href="/groups">Groups</a></li>
+
+				{% if "admin" in current_user.get_authgroups() %}
+					<li><a href="/groups/admin">Group Admin</a></li>
+				{% endif %}
+				{% if "ping" in current_user.get_authgroups() %}
+					<li><a href="/ping">Pings</a></li>
+				{% endif %}
+				</ul>
+
+				<div class="navbar-right">
+					<p class="navbar-text">{{ current_user["characterName"][0] }}</p>
+					<a class="btn btn-default navbar-btn" href="/logout"><i class="icon-logout"></i>Logout</a>
+				</div>
+				{% endif %}
+			</nav>
+			</div>
+		</div>
+		</nav>
+		<div class="container">
+			{% with messages = get_flashed_messages(with_categories=true) %}
+				{% if messages %}
+					{% for category, message in messages %}
+					<div class="alert alert-{% if category != "message" %}{{ category }}{% else %}danger{% endif %}">
+						<a class="close" data-dismiss="alert">x</a>
+							{{ message }}
+						</a>
+					</div>
+					{% endfor %}
+				{% endif %}
+			{% endwith %}
+			<h1>{% block header %}{% endblock %}</h1>
+			{% block body %}
+			{% endblock %}
+		</div>
+	</body>
+
+</html>

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}xXPIZZAXx User Signup{% endblock %}
+{% block header %}xXPIZZAXx User Signup{% endblock %}
+{% block body %}
+	<h2>Create Account</h2>
+	<div class="row well form-inline custom-form">
+		<h3>Character</h3>
+			<table class="table">
+				<tr>
+					<th scope="row">Character</th>
+					<td>{{ character["name"] }}</td>
+				</tr>
+				<tr>
+					<th scope="row">Corp</th>
+					<td>{{ character["corporationName"] }}</td>
+				</tr>
+				<tr>
+					<th scope="row">Alliance</th>
+					<td>{{ character["allianceName"] }}</td>
+				</tr>
+				<tr>
+					<th scope="row">Eligibility</th>
+					<td>{{ character["result"] }}</td>
+				</tr>
+			</table>
+		<h3>Account Settings</h3>
+		<form name="account" action="/account" method="post">
+			<table class="table">
+				<tr>
+					<th scope="row">Username</th>
+					<td>{{ session["username"] }}</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="email">Email Address</label></th>
+					<td><input id="email" type="text" name="email" class="form-control"/></td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="password">Password</label></th>
+					<td><input id="password" type="password" name="password" class="form-control" /></td>
+				</tr>
+			</table>
+			<button type="submit" class="btn btn-primary" value="submit" />Submit</button>
+		</form>
+		</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+Welcome {{ user.characterName[0] }},
+
+This email confirms that you have signed up for Confederation of xXPIZZAXx IT services.
+
+Your username is: {{ user.get_id() }}
+Your jabber ID is: {{ user.get_jid() }}
+You may add Teamspeak 3 IDs at http://auth.xxpizzaxx.com/services
+
+To sign up for additional services please go to http://auth.xxpizzaxx.com/groups and sign up for the correct groups.
+
+--
+Automated Auth System
+Confederation of xXPIZZAXx
+
+Replies to this message are not monitored, future emails will only be generated when requested by the user.

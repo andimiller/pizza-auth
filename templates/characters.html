@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}xXPIZZAXx User Signup{% endblock %}
+{% block header %}xXPIZZAXx User Signup{% endblock %}
+{% block body %}
+	<h2>Pick a character</h2>
+	<div class="row">
+		<table class="table">
+			<tr>
+				<th></th>
+				<th>Name</th>
+				<th>Corp</th>
+				<th>Alliance</th>
+				<th>Eligibility</th>
+			</tr>
+		{% for character in characters %}
+		<tr>
+			<td>
+			<a href="/signup/{{ character.name }}">
+				<img src="http://image.eveonline.com/Character/{{ character.characterID }}_128.jpg" />
+			</td>
+			<td>
+				{{ character.name }}
+			</td>
+			<td>
+				{{ character.corporationName }}
+			</td>
+			<td>
+				{{ character.allianceName }}
+			</td>
+			<td>
+				{{ character.result }}
+			</td>
+			</a>
+		</tr>
+		{% endfor %}
+		</table>
+	</div>
+{% endblock %}

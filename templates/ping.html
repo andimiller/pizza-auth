@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Ping Tool{% endblock %}
+{% block header %}Ping Tool{% endblock %}
+{% block body %}
+<div class="row">
+	<div class="col-md-4">
+		<div class="panel panel-default">
+		<div class="panel-heading"><h3 class="panel-title">Server-wide Ping</h3></div>
+		<form role="form" class="panel-body form-inline span8 offset2 custom-form" name="ping" action="/ping/send" method="post">
+			<div class="form-group" style="width:100%;">
+				<label for="message">Message</label><br /><textarea class="form-control" rows=6 style="width:100%" type="text" name="message"></textarea>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" name="xxpizzaxx.com" checked>xxpizzaxx.com
+					</label>
+				</div>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" name="allies.xxpizzaxx.com" checked>allies.xxpizzaxx.com
+					</label>
+				</div>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" name="public.xxpizzaxx.com">public.xxpizzaxx.com
+					</label>
+				</div>
+				<br />
+				<div class="controls">
+					<button type="submit" class="btn btn-primary" value="submit" />Submit</button>
+				</div>
+			</div>
+		</form>
+		</div>
+	</div>
+
+	<div class="col-md-4">
+		<div class="panel panel-default">
+		<div class="panel-heading"><h3 class="panel-title">Simple Group Ping</h3></div>
+		<form role="form" class="panel-body form-inline span8 offset2 custom-form" name="ping" action="/ping/group" method="post">
+			<div class="form-group" style="width:100%;">
+				<label for="message">Message</label><br /><textarea class="form-control" rows=6 style="width:100%" type="text" name="message"></textarea>
+				<label for="message">Group</label><br /><input id="group" class="form-control" style="width:100%" type="text" name="group" placeholder="Love Squad, dota, supers..."/></br>
+				<br />
+				<div class="controls">
+					<button type="submit" class="btn btn-primary" value="submit" />Submit</button>
+				</div>
+			</div>
+		</form>
+		</div>
+	</div>
+	<div class="col-md-4">
+		<div class="panel panel-default">
+		<div class="panel-heading"><h3 class="panel-title">Advanced Group Ping</h3></div>
+		<form role="form" class="panel-body form-inline span8 offset2 custom-form" name="ping" action="/ping/advgroup" method="post">
+			<div class="form-group" style="width:100%;">
+				<label for="message">Message</label><br /><textarea class="form-control" rows=6 style="width:100%" type="text" name="message"></textarea>
+				<label for="message">Filter</label><br /><input class="form-control" style="width:100%" type="text" name="filter" placeholder="(&(corporation=Love Squad)(authGroup=dota))" /></br>
+				<br />
+				<div class="controls">
+					<button type="submit" class="btn btn-primary" value="submit" />Submit</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div class="row">
+
+<script>
+
+$( "#group" ).autocomplete({source: "/ping/complete", minLength: 2 });
+
+</script>
+{% endblock %}
