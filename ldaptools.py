@@ -54,7 +54,7 @@ class LDAPTools():
 		l.simple_bind(self.config["admin"], self.config["password"])
 		dn = "uid=%s,%s" % (attrs["uid"], self.config["memberdn"])
 		attrs["objectClass"] = ['top', 'account', 'simpleSecurityObject', 'xxPilot']
-		attrs["userPassword"] = makeSecret(attrs["userPassword"])
+		attrs["userPassword"] = self.makeSecret(attrs["userPassword"])
 		ldif = modlist.addModlist(attrs)
 		l.add_s(dn, ldif)
 		l.unbind_s()
