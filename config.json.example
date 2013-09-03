@@ -1,6 +1,6 @@
 {
 	"pingbot": {
-		"username": "",
+		"username": "pingbot",
 		"passwd": "",
 		"domain": ""
 	},
@@ -28,21 +28,28 @@
 	"ts3": {
 		"user": "serveradmin",
 		"password": "",
-		"server": "localhost",
+		"server": "",
 		"port": 10011,
 		"servergroups":	{
-			"full": "2",
-			"ally": "3",
-			"none": "1"
+			"full": "1",
+			"ally": "2",
+			"none": "3"
 		}
 	},
 
 	"ldap": {
 		"server": "ldap://localhost/",
-		"admin": "cn=admin,dc=yourdomain,dc=com",
+		"admin": "cn=admin,dc=yoursite,dc=com",
 		"password": "",
-		"basedn": "dc=yourdomain,dc=com",
-		"memberdn": "ou=People,dc=xxpizzaxx,dc=com"
+		"basedn": "dc=yoursite,dc=com",
+		"memberdn": "ou=People,dc=yoursite,dc=com"
+	},
+
+	"skillindexer": {
+		"server": "localhost",
+		"user": "authuser",
+		"password": "",
+		"database": "auth"
 	}
 
 }
