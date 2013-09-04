@@ -67,6 +67,14 @@ class LDAPTools():
 		l.unbind_s()
 		return True
 
+	def modattr(self, uid, change, attr, value):
+		l = ldap.initialize(self.config["server"])
+		l.simple_bind(self.config["admin"], self.config["password"])
+		dn = "uid=%s,%s" % (uid, self.config["memberdn"])
+		l.modify_s(dn, [(change, str(attr), str(value))])
+		l.unbind_s()
+		return True
+
 	def modgroup(self, uid, change, group):
 		l = ldap.initialize(self.config["server"])
 		l.simple_bind(self.config["admin"], self.config["password"])

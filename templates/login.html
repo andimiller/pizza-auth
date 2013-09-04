@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block header %}{% endblock %}
+{% block body %}
+	<div class="row">
+	<form class="well form-inline span8 offset2 custom-form" name="mainsignin" action="/login" method="post">
+		<div class="control-group">
+			<div class="controls">
+				<h2>Login</h2>
+				<label for="username">Username</label><input class="form-control" id="username" type="text" name="username"/>
+				</div>
+				<div class="clearfix">
+				<label for="password">Password</label><input class="form-control" id="password" type="text" name="password" />
+				</div>
+				<input type="hidden" name="next_page" value="{{ next_page }}">
+			</div>
+			<br />
+			<div class="controls">
+				<button type="submit" class="btn btn-success">Sign in</button>
+			</div>
+	</form>
+	<a href='/forgot_password'>Forgot password?</a>
+	</div class="row">
+
+{% endblock %}

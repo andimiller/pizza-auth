@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Account Management{% endblock %}
+{% block header %}Account Management{% endblock %}
+{% block body %}
+<div class="row">
+	<div class="col-md-4">
+		<div class="panel panel-default">
+			<div class="panel-heading"><h3 class="panel-title">Your Account</h3></div>
+			<div class="panel-body">
+				<form role="form" id="update_account" action="/account/update" method="post">
+					<table class="table table-striped">
+						<tr>
+							<th>Account</th><td>{{ current_user.get_id() }}</td>
+						</tr>
+						<tr>
+							<th>Main Character</th><td>{{ current_user.characterName[0] }}</td>
+						</tr>
+						<tr>
+							<th>Email</th><td><input name="email" value="{{ current_user.email[0] }}" required/></td>
+						</tr>
+						<tr>
+							<th>New Password</th><td><input type="password" name="password" id="password" /></td>
+						</tr>
+						<tr>
+							<th>Confirm New Password</th><td><input type="password" name="password_confirm" id="password_confirm" /></td>
+						</tr>
+					</table>
+				<button type="submit" class="btn btn-default">Update</button>
+				</form>
+				<script src="http://jquery.bassistance.de/validate/jquery.validate.js"></script>
+				<script src="http://jquery.bassistance.de/validate/additional-methods.js"></script>
+				<script>
+					$( "#update_account" ).validate({
+						rules: {
+							email: {
+								required: true,
+								email: true
+							},
+							password: "required",
+							password_confirm: {
+								equalTo: "#password"
+							}
+						}
+					});
+				</script>
+
+
+			</div>
+		</div>
+	</div>
+</div class="row">
+{% endblock %}

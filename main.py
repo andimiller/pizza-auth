@@ -1,12 +1,14 @@
+import json
 from flask import Flask, flash, session, render_template, redirect, request, abort, url_for, escape
 from flask.ext.login import LoginManager, login_user, logout_user, login_required, current_user
 import ts3tools, announce
 from ldaptools import LDAPTools
 from keytools import KeyTools
-import json
+from emailtools import EmailTools
 from collections import namedtuple
 from ldap import ALREADY_EXISTS
-from ldap import MOD_ADD, MOD_DELETE
+from ldap import MOD_ADD, MOD_DELETE, MOD_REPLACE
+import string, random
 
 
 # Load configuration
@@ -22,13 +24,16 @@ pingbot = announce.pingbot(config)
 ts3manager = ts3tools.ts3manager(config)
 ldaptools = LDAPTools(config)
 keytools = KeyTools(config)
+emailtools = EmailTools()
 
 @login_manager.user_loader
 def load_user(userid):
 	return ldaptools.getuser(userid)
 
-@app.route("/login", methods=["POST"])
+@app.route("/login", methods=["POST", "GET"])
 def login():
+	if request.method=="GET":
+		return render_template("login.html")
 	username = request.form["username"]
 	password = request.form["password"]
 	next_page = request.form["next_page"]
@@ -41,15 +46,70 @@ def login():
 		else:
 			return redirect("/")
 	else:
-		flash("Invalid Credentials", "danger")
-		return redirect("/")
+		flash("Invalid Credentials. ", "danger")
+		return redirect("/login")
 
+recoverymap = {}
+
+@app.route("/forgot_password", methods=["POST", "GET"])
+def forgot_password():
+	if request.method=="GET":
+		return render_template("forgot_password.html")
+	username = request.form["username"]
+	email = request.form["email"]
+	try:
+		user = ldaptools.getuser(username)
+		assert(user)
+		assert(email == user.email[0])
+		token = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for x in range(24))
+		url = "http://auth.xxpizzaxx.com/recovery/"+token
+		recoverymap[token] = username
+		emailtools.render_email(email, "Password Recovery", "forgot_password.txt", url=url)
+		flash("Email sent to "+email, "success")
+		print recoverymap
+	except Exception as e:
+		print e
+		flash("Username/Email mismatch", "danger")
+	return redirect("/login")
+
+@app.route("/recovery/<token>")
+def recovery(token):
+	if token not in recoverymap:
+		flash("Recovery Token Expired", "danger")
+		return redirect("/login")
+	else:
+		user = ldaptools.getuser(recoverymap[token])
+		login_user(user)
+		del recoverymap[token]
+		print recoverymap
+		flash("Logged in as %s using recovery token." % user.get_id(), "success")
+		return redirect("/account")
 
 @app.route("/logout")
 @login_required
 def logout():
 	logout_user()
 	return redirect("/")
+
+@app.route("/account")
+@login_required
+def account():
+	return render_template("account.html")
+
+@app.route("/account/update", methods=['POST'])
+@login_required
+def update_account():
+	email = request.form["email"]
+	password = request.form["password"]
+	try:
+		result = ldaptools.modattr(current_user.get_id(), MOD_REPLACE, "email", email)
+		assert(result)
+		result = ldaptools.modattr(current_user.get_id(), MOD_REPLACE, "userPassword", ldaptools.makeSecret(password))
+		assert(result)
+		flash("Account updated", "success")
+	except Exception:
+		flash("Update failed", "danger")
+	return redirect("/account")
 
 @app.route("/groups")
 @login_required
@@ -295,8 +355,8 @@ def pickcharactername(name):
 	else:
 		abort(404)
 
-@app.route('/account', methods=['POST'])
-def account():
+@app.route('/create_account', methods=['POST'])
+def create_account():
 	attrs = {}
 	attrs["email"] = request.form.get("email")
 	attrs["userPassword"] = request.form.get("password")
