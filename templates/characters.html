@@ -28,7 +28,7 @@
 				{{ character.allianceName }}
 			</td>
 			<td>
-				{{ character.result }}
+				{% if character.result=="Ineligible"%}Public Only{% else %}{{ character.result }}{% endif %}
 			</td>
 			</a>
 		</tr>

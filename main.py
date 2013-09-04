@@ -194,6 +194,11 @@ def group_apply(group):
 	if group in config["groups"]["closedgroups"]:
 		group = group+"-pending"
 		join = False
+	print current_user.accountStatus
+	if current_user.accountStatus[0]=="Ineligible":
+		if group not in config["groups"]["publicgroups"]:
+			flash("You cannot join that group.", "danger")
+			return redirect("/groups")
 	ldaptools.modgroup(current_user.get_id() , MOD_ADD, group)
 	if join:
 		flash("Joined %s group" % group, "success")
