@@ -318,8 +318,11 @@ def signup():
 
 @app.route('/')
 def index():
-	next_page = request.args.get('next')
-	return render_template("index.html", next_page=next_page)
+	if current_user.is_anonymous():
+		next_page = request.args.get('next')
+		return render_template("index.html", next_page=next_page)
+	else:
+		return render_template("index_user.html")
 
 @app.route('/character')
 def character():
