@@ -48,6 +48,7 @@ def login():
 	else:
 		flash("Invalid Credentials. ", "danger")
 		return redirect("/login")
+login_manager.login_view = "/login"
 
 recoverymap = {}
 
@@ -319,7 +320,6 @@ def signup():
 def index():
 	next_page = request.args.get('next')
 	return render_template("index.html", next_page=next_page)
-login_manager.login_view = "/"
 
 @app.route('/character')
 def character():
