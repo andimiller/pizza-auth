@@ -6,12 +6,15 @@ LDAP-Backed Services Auth System for EVE Online
 
 Please install the following with pip:
 
+* eveapi
 * Flask
 * Flask-Login
 * Requests
 * python-ldap
+* xmpppy
 
 Optional:
+
 * ts3 package from https://github.com/nikdoof/python-ts3
 
 ## Configuration

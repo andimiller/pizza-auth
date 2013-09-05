@@ -1,3 +1,5 @@
+eveapi
+xmpppy
 requests
 flask
 flask-login
