@@ -16,6 +16,8 @@ class EmailTools():
 		msg['Subject'] = subject
 		msg['From'] = "auth@xxpizzaxx.com"
 		msg['To'] = to
+		msg['Precedence'] = "bulk"
+		msg['Auto-Submitted'] = 'auto-generated'
 		s = smtplib.SMTP('localhost')
 		s.sendmail(msg['From'], msg['To'], msg.as_string())
 		s.quit()
