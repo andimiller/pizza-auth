@@ -29,7 +29,7 @@
 				</tr>
 			</table>
 		<h3>Account Settings</h3>
-		<form name="account" action="/create_account" method="post">
+		<form id="account" name="account" action="/create_account" method="post">
 			<table class="table">
 				<tr>
 					<th scope="row">Username</th>
@@ -43,8 +43,29 @@
 					<th scope="row"><label for="password">Password</label></th>
 					<td><input id="password" type="password" name="password" class="form-control" /></td>
 				</tr>
+				<tr>
+					<th scope="row"><label for="password_confirm">Confirm Password</label></th>
+					<td><input id="password_confirm" type="password" name="password_confirm" class="form-control" /></td>
+				</tr>
 			</table>
 			<button type="submit" class="btn btn-primary" value="submit" />Submit</button>
 		</form>
+		<script src="http://jquery.bassistance.de/validate/jquery.validate.js"></script>
+		<script src="http://jquery.bassistance.de/validate/additional-methods.js"></script>
+		<script>
+			$( "#account" ).validate({
+				rules: {
+					email: {
+						required: true,
+						email: true
+					},
+					password: "required",
+					password_confirm: {
+						equalTo: "#password"
+					}
+				}
+			});
+		</script>
+
 		</div>
 {% endblock %}
