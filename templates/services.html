@@ -1,23 +1,38 @@
 {% extends "base.html" %}
-{% block title %}Services - PIZZA Auth{% endblock %}
+{% block title %}Services{% endblock %}
 {% block header %}Services{% endblock %}
 {% block body %}
-<h2>Jabber</h2>
-Your jabber account is enabled as {{ current_user.get_jid() }}
-<h2>Teamspeak 3<a href="#ts3idhelp" role="button" data-toggle="modal"><small>How do I use this?</small></a></h2>
-<table>
-	{% for ts3id in current_user.get_ts3ids() %}
-	<tr><td>{{ ts3id }}</td><td><a class="btn btn-xs btn-danger" href="/services/ts3id/delete/{{ ts3id }}">Delete</a></td>
-	{% endfor %}
-<form class="form-inline span8 offset2 custom-form" method="post" action="/services/ts3id">
-	<tr>
-		<td><input class="form-control" id="ts3id" type="text" name="ts3id" placeholder="New TS3 Identity" style="width:200px"/></td>
-		<td><button type="submit" class="btn btn-primary" value="submit" />Add</button></td>
-</form>
+<div class="row">
+	<div class="col-md-4">
+		<div class="panel panel-default">
+			<div class="panel-heading"><h3 class="panel-title">Jabber</h3></div>
+			<div class="panel-body">
+				<p>Jabber ID: {{ current_user.get_jid() }}</p>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-4">
+		<div class="panel panel-default">
+			<div class="panel-heading"><h3 class="panel-title">Teamspeak 3<a href="#ts3idhelp" role="button" data-toggle="modal"><small class="pull-right">How do I use this?</small></a></h3></div>
+			<div class="panel-heading"><h3 class="panel-title">Your Identities</h3></div>
+			<div class="panel-body">
+				<table>
+					{% for ts3id in current_user.get_ts3ids() %}
+					<tr><td>{{ ts3id }}</td><td><a class="btn btn-xs btn-danger" href="/services/ts3id/delete/{{ ts3id }}">Delete</a></td>
+					{% endfor %}
+				<form class="form-inline span8 offset2 custom-form" method="post" action="/services/ts3id">
+					<tr>
+						<td><input class="form-control" id="ts3id" type="text" name="ts3id" placeholder="New TS3 Identity" style="width:200px"/></td>
+						<td><button type="submit" class="btn btn-primary" value="submit" />Add</button></td>
+				</form>
 
-</table>
+				</table>
 
-<a href="/services/ts3id/reload" style="width:100%" class="btn btn-primary btn-lg">Refresh TS3</a>
+				<a href="/services/ts3id/reload" class="btn btn-primary btn-lg">Refresh TS3</a>
+			</div>
+		</div>
+	</div>
+</div>
 
 <div id="ts3idhelp" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="ts3idhelplabel" aria-hidden="true">
 	<div class="modal-dialog">
