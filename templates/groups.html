@@ -4,7 +4,7 @@
 {% block body %}
 <div class="row">
 	<div class="col-md-4">
-		<div class="panel panel-default">
+		<div class="panel panel-primary">
 			<div class="panel-heading"><h3 class="panel-title">Your Groups</h3></div>
 			<div class="panel-body">
 				<ul class="list-group">
@@ -18,7 +18,7 @@
 		</div>
 	</div>
 	<div class="col-md-4">
-		<div class="panel panel-default">
+		<div class="panel panel-primary">
 			<div class="panel-heading"><h3 class="panel-title">Your Pending Groups</h3></div>
 			<div class="panel-body">
 				<ul class="list-group">
@@ -32,16 +32,17 @@
 		</div>
 	</div>
 	<div class="col-md-4">
-		<div class="panel panel-default">
+		<div class="panel panel-primary">
 			<div class="panel-heading"><h3 class="panel-title">Available Groups</h3></div>
 			<div class="panel-body">
-				Closed Groups
 				<ul class="list-group">
+					<li class="list-group-item active">Closed Groups</li>
 					{% for group in closed_groups %}
 						<a href="/groups/apply/{{ group }}" class="list-group-item">{{ group }}</a>
 					{% endfor %}
-				Open Groups
+
 				<ul class="list-group">
+					<li class="list-group-item active">Open Groups</li>
 					{% for group in open_groups %}
 						<a href="/groups/apply/{{ group }}" class="list-group-item">{{ group }}</a>
 					{% endfor %}
