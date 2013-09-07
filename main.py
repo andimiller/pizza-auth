@@ -230,7 +230,7 @@ def ping_send():
 	if "ping" not in current_user.get_authgroups():
 		return redirect("/")
 	else:
-		servers = ["allies.xxpizzaxx.com", "xxpizzaxx.com", "public.xxpizzaxx.com"]
+		servers = map(lambda x:x + config["auth"]["domain"], ["allies.", "", "public."])
 		servers = filter(lambda x:x in request.form, servers)
 		pingbot.broadcast(current_user.get_id(),",".join(servers), request.form["message"], servers)
 		flash("Broadcasts sent to: "+", ".join(servers), "success")
