@@ -28,7 +28,7 @@ class KeyTools():
 
 
 	def getCharacterStanding(self, character):
-		if character.allianceName == "Confederation of xXPIZZAXx":
+		if character.allianceName == self.config["auth"]["alliance"]:
 			return "PIZZA"
 		elif character.allianceID in self.bluealliances:
 			return "Ally"
