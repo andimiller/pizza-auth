@@ -126,6 +126,9 @@ class LDAPTools():
 			ldap_client = ldap.initialize(self.config["server"])
 			ldap_client.set_option(ldap.OPT_REFERRALS,0)
 			ldap_client.simple_bind_s("uid=%s,%s" % (username, self.config["memberdn"]), password)
+		except ldap.INVALID_DN_SYNTAX:
+			ldap_client.unbind()
+			return False
 		except ldap.INVALID_CREDENTIALS:
 			ldap_client.unbind()
 			return False
