@@ -25,7 +25,7 @@ pingbot = announce.pingbot(app.config)
 ts3manager = ts3tools.ts3manager(app.config)
 ldaptools = LDAPTools(app.config)
 keytools = KeyTools(app.config)
-emailtools = EmailTools()
+emailtools = EmailTools(app.config)
 
 @login_manager.user_loader
 def load_user(userid):
