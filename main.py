@@ -64,9 +64,9 @@ def forgot_password():
 		assert(user)
 		assert(email == user.email[0])
 		token = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for x in range(24))
-		url = "http://auth.xxpizzaxx.com/recovery/"+token
+		url = request.host_url+"recovery/"+token
 		recoverymap[token] = username
-		emailtools.render_email(email, "Password Recovery", "forgot_password.txt", url=url)
+		emailtools.render_email(email, "Password Recovery", "forgot_password.txt", url=url, config=app.config)
 		flash("Email sent to "+email, "success")
 		print recoverymap
 	except Exception as e:

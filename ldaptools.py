@@ -9,8 +9,9 @@ class ServerDownException(Exception): pass
 
 class User(UserMixin):
 
-	def __init__(self, attr):
+	def __init__(self, attr, domain):
 		self.__dict__.update(attr)
+		self.domain = domain
 
 	def get_id(self):
 		return self.uid[0]
@@ -29,12 +30,12 @@ class User(UserMixin):
 			return map(lambda x:x[:-8], results)
 
 	def get_jid(self):
-		domain = {
-			"PIZZA": "xxpizzaxx.com",
-			"Ally": "allies.xxpizzaxx.com",
-			"Ineligible": "public.xxpizzaxx.com"
+		domains = {
+			"PIZZA": self.domain,
+			"Ally": "allies." + self.domain,
+			"Ineligible": "public." + self.domain
 		}
-		return "%s@%s" % (self.uid[0], domain[self.accountStatus[0]])
+		return "%s@%s" % (self.uid[0], domains[self.accountStatus[0]])
 
 	def get_ts3ids(self):
 		if hasattr(self, "ts3uid"):
@@ -44,7 +45,8 @@ class User(UserMixin):
 
 class LDAPTools():
 	def __init__(self, config):
-		self.config=config["ldap"]
+		self.authconfig = config
+		self.config = config["ldap"]
 
 	def makeSecret(self, password):
 		return subprocess.check_output(["slappasswd","-h","{SSHA}","-s", password]).rstrip("\n")
@@ -117,7 +119,7 @@ class LDAPTools():
 		if data:
 			dn, attrs = data[0]
 			l.unbind_s()
-			return User(attrs)
+			return User(attrs, self.authconfig["auth"]["domain"])
 		l.unbind_s()
 		return None
 
@@ -155,6 +157,6 @@ class LDAPTools():
 			else:
 				if result_type == ldap.RES_SEARCH_ENTRY:
 					results.append(result_data[0][1])
-		return map(lambda x:User(x), results)
+		return map(lambda x:User(x, self.authconfig["auth"]["domain"]), results)
 
 

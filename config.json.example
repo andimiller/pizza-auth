@@ -1,4 +1,10 @@
 {
+{
+	"auth": {
+		"alliance": "Confederation of xXPIZZAXx",
+		"allianceshort": "PIZZA",
+		"domain": "xxpizzaxx.com"
+	},
 	"pingbot": {
 		"username": "pingbot",
 		"passwd": "",

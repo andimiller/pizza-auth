@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}PIZZA Auth System{% endblock %}
+{% block title %}{{ config["auth"]["allianceshort"] }} Auth System{% endblock %}
 {% block header %}{% endblock %}
 {% block body %}
 <div class="masthead jumbotron">
 	<div class="container">
-		<h1>Welcome to PIZZA Auth</h1>
-			<p>This site allows you to sign up for PIZZA-related services and configure your existing accounts, available services include:</p>
+		<h1>Welcome to {{ config["auth"]["allianceshort"] }} Auth</h1>
+		<p>This site allows you to sign up for {{ config["auth"]["alliance"] }}-related services and configure your existing accounts, available services include:</p>
 			<ul>
 				<li>Teamspeak3</li>
 				<li>Jabber (Public and Private)</li>
