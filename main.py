@@ -252,8 +252,10 @@ def ping_send_advgroup():
 	if "ping" not in current_user.get_authgroups():
 		return redirect("/")
 	else:
-		count = pingbot.groupbroadcast(current_user.get_id(), request.form["filter"], request.form["message"], request.form["filter"])
-		flash("Broadcast sent to %d members in %s" % (count, request.form["group"]), "success")
+		ldap_filter = "("+request.form["filter"]+")"
+		message = request.form["message"]
+		count = pingbot.groupbroadcast(current_user.get_id(), ldap_filter, message, ldap_filter)
+		flash("Broadcast sent to %d members in %s" % (count, ldap_filter]), "success")
 		return redirect("/ping")
 
 @app.route("/services")
@@ -335,6 +337,7 @@ def character():
 		return render_template("characters.html", characters=chars)
 	except Exception as e:
 		print e
+		raise
 		flash("Invalid API key", "danger")
 		return redirect(url_for("index"))
 
