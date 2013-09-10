@@ -77,6 +77,14 @@ class LDAPTools():
 		l.unbind_s()
 		return True
 
+	def deleteuser(self, uid):
+		l = ldap.initialize(self.config["server"])
+		l.simple_bind(self.config["admin"], self.config["password"])
+		dn = "uid=%s,%s" % (uid, self.config["memberdn"])
+		l.delete_s(dn)
+		l.unbind_s()
+		return True
+
 	def modgroup(self, uid, change, group):
 		l = ldap.initialize(self.config["server"])
 		l.simple_bind(self.config["admin"], self.config["password"])
@@ -101,6 +109,7 @@ class LDAPTools():
 			# now change it
 			newattrs.update(oldattrs)
 			ldif = modlist.modifyModlist(oldattrs, newattrs)
+			print ldif
 			l.modify_s(dn, ldif)
 			l.unbind_s()
 			return True

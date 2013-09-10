@@ -255,7 +255,7 @@ def ping_send_advgroup():
 		ldap_filter = "("+request.form["filter"]+")"
 		message = request.form["message"]
 		count = pingbot.groupbroadcast(current_user.get_id(), ldap_filter, message, ldap_filter)
-		flash("Broadcast sent to %d members in %s" % (count, ldap_filter]), "success")
+		flash("Broadcast sent to %d members in %s" % (count, ldap_filter), "success")
 		return redirect("/ping")
 
 @app.route("/services")
