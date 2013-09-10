@@ -11,17 +11,17 @@
 				<label for="message">Message</label><br /><textarea class="form-control" rows=6 style="width:100%" type="text" name="message"></textarea>
 				<div class="checkbox">
 					<label>
-						<input type="checkbox" name="xxpizzaxx.com" checked>xxpizzaxx.com
+						<input type="checkbox" name="{{ config["auth"]["domain"] }}" checked>{{ config["auth"]["domain"] }}
 					</label>
 				</div>
 				<div class="checkbox">
 					<label>
-						<input type="checkbox" name="allies.xxpizzaxx.com" checked>allies.xxpizzaxx.com
+						<input type="checkbox" name="allies.{{ config["auth"]["domain"] }}" checked>allies.{{ config["auth"]["domain"] }}
 					</label>
 				</div>
 				<div class="checkbox">
 					<label>
-						<input type="checkbox" name="public.xxpizzaxx.com">public.xxpizzaxx.com
+						<input type="checkbox" name="public.{{ config["auth"]["domain"] }}">public.{{ config["auth"]["domain"] }}
 					</label>
 				</div>
 				<br />

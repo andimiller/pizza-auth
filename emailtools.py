@@ -7,14 +7,14 @@ import json
 
 class EmailTools():
 
-	def __init__(self):
+	def __init__(self, config):
 		self.env = Environment()
 		self.env.loader = FileSystemLoader('templates/email')
 
 	def send_email(self, to, subject, body):
 		msg = MIMEText(body)
 		msg['Subject'] = subject
-		msg['From'] = "auth@xxpizzaxx.com"
+		msg['From'] = "auth@" + config["auth"]["domain"]
 		msg['To'] = to
 		msg['Precedence'] = "bulk"
 		msg['Auto-Submitted'] = 'auto-generated'

@@ -21,6 +21,7 @@ class SkillIndexer():
 	def __init__(self, config):
 		self.ldaptools = LDAPTools(config)
 		self.config = config["skillindexer"]
+		self.authconfig = config
 
 	def getSkills(self, db, name, id, vCode):
 		accountCharacters = "http://api.eveonline.com/account/Characters.xml.aspx"
@@ -59,7 +60,7 @@ class SkillIndexer():
 
 	def main(self):
 		#ldap
-		everyone = self.ldaptools.getusers("alliance=Confederation of xXPIZZAXx")
+		everyone = self.ldaptools.getusers("alliance=" + self.authconfig["auth"]["alliance"])
 
 		#database server
 		db = MySQLdb.connect(self.config["server"], self.config["user"], self.config["password"], self.config["database"])

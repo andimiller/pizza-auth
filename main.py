@@ -10,21 +10,22 @@ from ldap import ALREADY_EXISTS
 from ldap import MOD_ADD, MOD_DELETE, MOD_REPLACE
 import string, random
 
+app = Flask(__name__)
 
 # Load configuration
 with open("config.json") as fh:
 	config=json.loads(fh.read())
 assert(config)
+app.config.update(config)
 
 # Set up all classes
-app = Flask(__name__)
 login_manager = LoginManager()
 login_manager.init_app(app)
-pingbot = announce.pingbot(config)
-ts3manager = ts3tools.ts3manager(config)
-ldaptools = LDAPTools(config)
-keytools = KeyTools(config)
-emailtools = EmailTools()
+pingbot = announce.pingbot(app.config)
+ts3manager = ts3tools.ts3manager(app.config)
+ldaptools = LDAPTools(app.config)
+keytools = KeyTools(app.config)
+emailtools = EmailTools(app.config)
 
 @login_manager.user_loader
 def load_user(userid):
@@ -63,9 +64,9 @@ def forgot_password():
 		assert(user)
 		assert(email == user.email[0])
 		token = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for x in range(24))
-		url = "http://auth.xxpizzaxx.com/recovery/"+token
+		url = request.host_url+"recovery/"+token
 		recoverymap[token] = username
-		emailtools.render_email(email, "Password Recovery", "forgot_password.txt", url=url)
+		emailtools.render_email(email, "Password Recovery", "forgot_password.txt", url=url, config=app.config)
 		flash("Email sent to "+email, "success")
 		print recoverymap
 	except Exception as e:
@@ -118,9 +119,9 @@ def groups():
 	yourgroups = current_user.get_authgroups() + current_user.get_pending_authgroups()
 	notyours = lambda x: x not in yourgroups
 	if "Ineligible" in current_user.accountStatus:
-		return render_template("groups.html", closed_groups=filter(notyours, []), open_groups=filter(notyours, config["groups"]["publicgroups"]))
+		return render_template("groups.html", closed_groups=filter(notyours, []), open_groups=filter(notyours, app.config["groups"]["publicgroups"]))
 	else:
-		return render_template("groups.html", closed_groups=filter(notyours, config["groups"]["closedgroups"]), open_groups=filter(notyours, config["groups"]["opengroups"]))
+		return render_template("groups.html", closed_groups=filter(notyours, app.config["groups"]["closedgroups"]), open_groups=filter(notyours, app.config["groups"]["opengroups"]))
 
 @app.route("/groups/admin")
 @login_required
@@ -132,7 +133,7 @@ def groupadmin():
 	for user in pendingusers:
 		for group in user.get_pending_authgroups():
 			applications.append((user.get_id(), group))
-	return render_template("groupsadmin.html", applications=applications, groups=config["groups"]["closedgroups"]+config["groups"]["opengroups"])
+	return render_template("groupsadmin.html", applications=applications, groups=app.config["groups"]["closedgroups"]+app.config["groups"]["opengroups"])
 
 @app.route("/groups/list/<group>")
 @login_required
@@ -190,14 +191,14 @@ def groupremove(id, group):
 def group_apply(group):
 	originalgroup = group
 	group = str(group)
-	assert(group in config["groups"]["closedgroups"]+config["groups"]["opengroups"])
+	assert(group in app.config["groups"]["closedgroups"]+app.config["groups"]["opengroups"])
 	join = True
-	if group in config["groups"]["closedgroups"]:
+	if group in app.config["groups"]["closedgroups"]:
 		group = group+"-pending"
 		join = False
 	print current_user.accountStatus
 	if current_user.accountStatus[0]=="Ineligible":
-		if group not in config["groups"]["publicgroups"]:
+		if group not in app.config["groups"]["publicgroups"]:
 			flash("You cannot join that group.", "danger")
 			return redirect("/groups")
 	ldaptools.modgroup(current_user.get_id() , MOD_ADD, group)
@@ -229,7 +230,7 @@ def ping_send():
 	if "ping" not in current_user.get_authgroups():
 		return redirect("/")
 	else:
-		servers = ["allies.xxpizzaxx.com", "xxpizzaxx.com", "public.xxpizzaxx.com"]
+		servers = map(lambda x:x + config["auth"]["domain"], ["allies.", "", "public."])
 		servers = filter(lambda x:x in request.form, servers)
 		pingbot.broadcast(current_user.get_id(),",".join(servers), request.form["message"], servers)
 		flash("Broadcasts sent to: "+", ".join(servers), "success")
@@ -251,8 +252,10 @@ def ping_send_advgroup():
 	if "ping" not in current_user.get_authgroups():
 		return redirect("/")
 	else:
-		count = pingbot.groupbroadcast(current_user.get_id(), request.form["filter"], request.form["message"], request.form["filter"])
-		flash("Broadcast sent to %d members in %s" % (count, request.form["group"]), "success")
+		ldap_filter = "("+request.form["filter"]+")"
+		message = request.form["message"]
+		count = pingbot.groupbroadcast(current_user.get_id(), ldap_filter, message, ldap_filter)
+		flash("Broadcast sent to %d members in %s" % (count, ldap_filter), "success")
 		return redirect("/ping")
 
 @app.route("/services")
@@ -267,9 +270,9 @@ def add_tss3id():
 	print "trying to auth",ts3id
 	print "account is", current_user.accountStatus[0]
 	ts3group = {
-			"PIZZA": config["ts3"]["servergroups"]["full"],
-			"Ally": config["ts3"]["servergroups"]["ally"],
-			"Ineligible": config["ts3"]["servergroups"]["none"]
+			"PIZZA": app.config["ts3"]["servergroups"]["full"],
+			"Ally": app.config["ts3"]["servergroups"]["ally"],
+			"Ineligible": app.config["ts3"]["servergroups"]["none"]
 			}
 	ldaptools.modts3id(current_user.get_id() , MOD_ADD, ts3id)
 	result = ts3manager.modpermissions(ts3id, groupid=ts3group[current_user.accountStatus[0]])
@@ -285,9 +288,9 @@ def add_tss3id():
 def refresh_ts3id():
 	ts3ids = current_user.ts3uid
 	ts3group = {
-			"PIZZA": config["ts3"]["servergroups"]["full"],
-			"Ally": config["ts3"]["servergroups"]["ally"],
-			"Ineligible": config["ts3"]["servergroups"]["none"]
+			"PIZZA": app.config["ts3"]["servergroups"]["full"],
+			"Ally": app.config["ts3"]["servergroups"]["ally"],
+			"Ineligible": app.config["ts3"]["servergroups"]["none"]
 			}
 	results = []
 	for ts3id in ts3ids:
@@ -301,8 +304,8 @@ def refresh_ts3id():
 @login_required
 def delete_ts3id(id):
 	id = str(id)
-	ts3manager.modpermissions(id, remove=True, groupid=config["ts3"]["servergroups"]["full"])
-	ts3manager.modpermissions(id, remove=True, groupid=config["ts3"]["servergroups"]["ally"])
+	ts3manager.modpermissions(id, remove=True, groupid=app.config["ts3"]["servergroups"]["full"])
+	ts3manager.modpermissions(id, remove=True, groupid=app.config["ts3"]["servergroups"]["ally"])
 	ldaptools.modts3id(current_user.get_id() , MOD_DELETE, id)
 	return redirect("/services")
 
@@ -334,6 +337,7 @@ def character():
 		return render_template("characters.html", characters=chars)
 	except Exception as e:
 		print e
+		raise
 		flash("Invalid API key", "danger")
 		return redirect(url_for("index"))
 
@@ -404,7 +408,7 @@ def pingcomplete():
 			if user.alliance[0] not in entities:
 				entities.append(user.alliance[0])
 	term = request.args.get('term')
-	results = filter(lambda x:x.lower().startswith(term.lower()), entities+config["groups"]["closedgroups"]+config["groups"]["opengroups"])
+	results = filter(lambda x:x.lower().startswith(term.lower()), entities+app.config["groups"]["closedgroups"]+app.config["groups"]["opengroups"])
 	return json.dumps(results)
 
 @app.teardown_appcontext

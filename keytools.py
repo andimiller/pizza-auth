@@ -9,6 +9,7 @@ api = eveapi.EVEAPIConnection()
 class KeyTools():
 	def __init__(self, config):
 		self.config = config["keytools"]
+		self.authconfig = config
 		self.bluealliances = self.getBlueAlliances()
 		print self.bluealliances
 
@@ -28,7 +29,7 @@ class KeyTools():
 
 
 	def getCharacterStanding(self, character):
-		if character.allianceName == "Confederation of xXPIZZAXx":
+		if character.allianceName == self.authconfig["auth"]["alliance"]:
 			return "PIZZA"
 		elif character.allianceID in self.bluealliances:
 			return "Ally"
