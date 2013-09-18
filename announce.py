@@ -69,6 +69,7 @@ class pingbot():
 	def groupbroadcast(self, sender, ldapfilter, message, to):
 		message = self.generatemessage(sender, to, message)
 		users = self.ldaptools.getusers(ldapfilter)
-		tojids = map(lambda x:x.get_jid(), users)
+		tojids = filter(lambda x:x.accountStatus[0] != "Expired", users)
+		tojids = map(lambda x:x.get_jid(), tojids)
 		return self.sendmessage(tojids, message)
 
