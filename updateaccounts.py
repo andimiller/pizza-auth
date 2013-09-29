@@ -62,9 +62,7 @@ if __name__ == "__main__":
 				ldaptools.modattr(character.get_id(), MOD_REPLACE, "corporation", newcharacter["corporationName"])
 
 		except RuntimeError:
-			if character.accountStatus[0] == "Expired":
-				next
-			if character.get_id() not in safecharacters:
+			if ("Expired" not in character.accountStatus) and (character.get_id() not in safecharacters):
 				logger.warn( "%s status update \t %s -> %s" % ( character.get_id(), character.accountStatus[0], "Expired") )
 				ldaptools.modattr(character.get_id(), MOD_REPLACE, "accountStatus", "Expired")
 		except AssertionError:
