@@ -1,5 +1,6 @@
 import eveapi
 import json
+import datetime
 
 with open('config.json', 'r') as fh:
 	config = json.loads(fh.read())
@@ -11,7 +12,6 @@ class KeyTools():
 		self.config = config["keytools"]
 		self.authconfig = config
 		self.bluealliances = self.getBlueAlliances()
-		print self.bluealliances
 
 	def getBlueAlliances(self):
 		standingsapi = eveapi.EVEAPIConnection()
@@ -26,7 +26,10 @@ class KeyTools():
 				bluealliances[contact.contactID] = contact.contactName
 		return bluealliances
 
-
+	def getExpiry(self, character):
+		accountstatusapi = eveapi.EVEAPIConnection()
+		auth = accountstatusapi.auth(keyID=character.keyID, vCode=character.vCode)
+		return datetime.datetime.fromtimestamp(auth.account.AccountStatus().paidUntil)
 
 	def getCharacterStanding(self, character):
 		if character.allianceName == self.authconfig["auth"]["alliance"]:
