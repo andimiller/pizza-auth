@@ -11,20 +11,25 @@ class KeyTools():
 	def __init__(self, config):
 		self.config = config["keytools"]
 		self.authconfig = config
-		self.bluealliances = self.getBlueAlliances()
+		self.bluealliances, self.coalitionalliances = self.getBlueAlliances()
 
 	def getBlueAlliances(self):
 		standingsapi = eveapi.EVEAPIConnection()
 		auth = standingsapi.auth(keyID=self.config["executorkeyid"], vCode=self.config["executorkeyvcode"])
 		standings = auth.corp.ContactList().allianceContactList
 		standings = filter(lambda x:x.standing>self.config["alliancelimit"], standings)
+                coalition = filter(lambda x:x.standing>self.config["coalitionlimit"], standings)
 		alliances = auth.eve.AllianceList().alliances
 		alliances = map(lambda x:x.allianceID, alliances)
 		bluealliances = {}
+                coalitionalliances = {}
 		for contact in standings:
 			if contact.contactID in alliances:
 				bluealliances[contact.contactID] = contact.contactName
-		return bluealliances
+                                if contact.standing == 10:
+                                        coalitionalliances[contact.contactID] = contact.contactName
+
+		return bluealliances, coalitionalliances
 
 	def getExpiry(self, character):
 		accountstatusapi = eveapi.EVEAPIConnection()
@@ -33,7 +38,9 @@ class KeyTools():
 
 	def getCharacterStanding(self, character):
 		if character.allianceName == self.authconfig["auth"]["alliance"]:
-			return "PIZZA"
+			return "Internal"
+                elif character.allianceID in self.coalitionalliances:
+                        return "Coalition"
 		elif character.allianceID in self.bluealliances:
 			return "Ally"
 		else:
