@@ -31,8 +31,8 @@ class User(UserMixin):
 
 	def get_jid(self):
 		domains = {
+			"INTERNAL": self.domain,
 			"OI": self.domain,
-			"PIZZA": self.domain,
 			"Ally": "allies." + self.domain,
 			"Ineligible": "public." + self.domain
 		}
@@ -95,6 +95,11 @@ class LDAPTools():
 		return True
 
 	def updateuser(self, uid, modattrs):
+                """
+                updateuser(self, uid, modattrs)
+                uid - user.get_id()
+                modattrs - {}
+                """
 		l = ldap.initialize(self.config["server"])
 		l.simple_bind(self.config["admin"], self.config["password"])
 		dn = "uid=%s,%s" % (uid, self.config["memberdn"])
