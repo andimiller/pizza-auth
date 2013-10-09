@@ -31,7 +31,7 @@ class User(UserMixin):
 
 	def get_jid(self):
 		domains = {
-			"INTERNAL": self.domain,
+			"Internal": self.domain,
 			"OI": self.domain,
 			"Ally": "allies." + self.domain,
 			"Ineligible": "public." + self.domain
