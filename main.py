@@ -5,6 +5,7 @@ import ts3tools, announce
 from ldaptools import LDAPTools
 from keytools import KeyTools
 from emailtools import EmailTools
+from reddittools import RedditTools
 from collections import namedtuple
 from ldap import ALREADY_EXISTS
 from ldap import MOD_ADD, MOD_DELETE, MOD_REPLACE
@@ -24,6 +25,7 @@ login_manager.init_app(app)
 pingbot = announce.pingbot(app.config)
 ts3manager = ts3tools.ts3manager(app.config)
 ldaptools = LDAPTools(app.config)
+reddittools = RedditTools(app.config,ldaptools)
 keytools = KeyTools(app.config)
 emailtools = EmailTools(app.config)
 
@@ -112,6 +114,17 @@ def update_account():
 	except Exception:
 		flash("Update failed", "danger")
 	return redirect("/account")
+
+@app.route("/account/reddit")
+@login_required
+def reddit():
+    token = current_user.get_reddit_token()
+    reddit = current_user.get_reddit_name()
+
+@app.route("/account/reddit/loop")
+@login_required
+def reddit_loop():
+    pass
 
 @app.route("/groups")
 @login_required

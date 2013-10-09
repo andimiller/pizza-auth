@@ -7,42 +7,6 @@ from flask.ext.login import UserMixin
 
 class ServerDownException(Exception): pass
 
-class User(UserMixin):
-
-	def __init__(self, attr, domain):
-		self.__dict__.update(attr)
-		self.domain = domain
-
-	def get_id(self):
-		return self.uid[0]
-
-	def get_authgroups(self):
-		if not hasattr(self, "authGroup"):
-			return []
-		else:
-			return filter(lambda x:not x.endswith("-pending"), self.authGroup)
-
-	def get_pending_authgroups(self):
-		if not hasattr(self, "authGroup"):
-			return []
-		else:
-			results = filter(lambda x:x.endswith("-pending"), self.authGroup)
-			return map(lambda x:x[:-8], results)
-
-	def get_jid(self):
-		domains = {
-			"Internal": self.domain,
-			"OI": self.domain,
-			"Ally": "allies." + self.domain,
-			"Ineligible": "public." + self.domain
-		}
-		return "%s@%s" % (self.uid[0], domains[self.accountStatus[0]])
-
-	def get_ts3ids(self):
-		if hasattr(self, "ts3uid"):
-			return self.ts3uid
-		else:
-			return []
 
 class LDAPTools():
 	def __init__(self, config):
@@ -77,6 +41,13 @@ class LDAPTools():
 		l.modify_s(dn, [(change, str(attr), str(value))])
 		l.unbind_s()
 		return True
+
+        def updateattrs(self, uid, change, av_dict):
+                l = ldap.initialize(self.config["server"])
+                l.simple_bind(self.config["admin"], self.config["password"])
+                dn = "uid=%s,%s" % (uid, self.config["memberdn"])
+                l.modify_s(dn, [(change, str(k), str(v)) for k,v in av_dict.items()])
+                return True
 
 	def deleteuser(self, uid):
 		l = ldap.initialize(self.config["server"])
@@ -134,7 +105,7 @@ class LDAPTools():
 		if data:
 			dn, attrs = data[0]
 			l.unbind_s()
-			return User(attrs, self.authconfig["auth"]["domain"])
+			return self.User(attrs, self.authconfig["auth"]["domain"])
 		l.unbind_s()
 		return None
 
@@ -172,6 +143,43 @@ class LDAPTools():
 			else:
 				if result_type == ldap.RES_SEARCH_ENTRY:
 					results.append(result_data[0][1])
-		return map(lambda x:User(x, self.authconfig["auth"]["domain"]), results)
+		return map(lambda x:self.User(x, self.authconfig["auth"]["domain"]), results)
 
+
+        class User(UserMixin):
+
+                def __init__(self, attr, domain):
+                        self.__dict__.update(attr)
+                        self.domain = domain
+
+                def get_id(self):
+                        return self.uid[0]
+
+                def get_authgroups(self):
+                        if not hasattr(self, "authGroup"):
+                                return []
+                        else:
+                                return filter(lambda x:not x.endswith("-pending"), self.authGroup)
+
+                def get_pending_authgroups(self):
+                        if not hasattr(self, "authGroup"):
+                                return []
+                        else:
+                                results = filter(lambda x:x.endswith("-pending"), self.authGroup)
+                                return map(lambda x:x[:-8], results)
+
+                def get_jid(self):
+                        domains = {
+                                "Internal": self.domain,
+                                "OI": self.domain,
+                                "Ally": "allies." + self.domain,
+                                "Ineligible": "public." + self.domain
+                        }
+                        return "%s@%s" % (self.uid[0], domains[self.accountStatus[0]])
+
+                def get_ts3ids(self):
+                        if hasattr(self, "ts3uid"):
+                                return self.ts3uid
+                        else:
+                                return []
 
