@@ -53,3 +53,22 @@ objectclass	( 1.3.6.1.4.1.39478.1.1
     MUST ( characterName $ keyID $ vCode $ corporation )
     MAY ( ts3uid $ authGroup $ alliance $ email $ accountStatus $ alt $ recommendedBy ) )
 
+attributetype	( 1.3.6.1.4.1.39478.2.2 NAME 'redditName'
+	DESC 'Reddit Account Name'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{256} )
+
+attributetype	( 1.3.6.1.4.1.39478.2.3 NAME 'redditToken'
+	DESC 'Reddit Account Token'
+	EQUALITY caseIgnoreMatch
+	SUBSTR caseIgnoreSubstringsMatch
+	SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{256} )
+
+objectclass	( 1.3.6.1.4.1.39478.2.1
+	NAME 'redditAccount'
+	AUXILIARY
+	DESC 'Reddit Account'
+	MUST ( redditName $ redditToken ) )
+
+
