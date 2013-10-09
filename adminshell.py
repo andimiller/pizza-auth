@@ -1,4 +1,4 @@
-#!/usr/bin/python -i
+#!/usr/bin/env python 
 """
 Auth shell
 """
@@ -19,3 +19,5 @@ ldaptools = LDAPTools(config)
 # Enter prompt
 print("Entering interactive PIZZA-Auth admin shell")
 sys.ps1 = "{t.magenta}pizza-auth > {t.normal}".format(t=term)
+import code
+code.InteractiveConsole(locals=globals()).interact()
