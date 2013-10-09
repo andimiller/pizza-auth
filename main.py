@@ -118,13 +118,31 @@ def update_account():
 @app.route("/account/reddit")
 @login_required
 def reddit():
-    token = current_user.get_reddit_token()
-    reddit = current_user.get_reddit_name()
+        redirect_uri = "http://newauth.talkinlocal.org" + url_for('reddit_loop')
+        if hasattr(current_user, 'redditAccount'):
+                flash("Already registered with reddit: %s" % (current_user.redditName,), "error")
+                return redirect(url_for('account'))
+
+        r = reddittools.get_reddit_client(redirect_uri)
+        url = r.get_authorize_url(app.config["reddit"]["statekey"], 'identity', False)
+        return redirect(url)
 
 @app.route("/account/reddit/loop")
 @login_required
 def reddit_loop():
-    pass
+        query = request.args
+        result = reddittools.verify_token(
+                current_user.get_id(),
+                query
+                )
+
+        if result:
+                user = load_user(current_user.get_id())
+                flash("Successfully updated or added reddit account: %s." % (user.redditName[0],), "success")
+        else:
+                flash("Failed to update reddit account.", "danger")
+
+        return redirect(url_for("index"))
 
 @app.route("/groups")
 @login_required
