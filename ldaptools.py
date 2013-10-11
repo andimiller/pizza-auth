@@ -68,7 +68,7 @@ class LDAPTools():
 		attrs["objectClass"] = ["groupofnames"]
 		ldif = modlist.addModlist(attrs)
 		print dn, ldif
-		l.add(dn, ldif)
+		l.add_s(dn, ldif)
 		l.unbind_s()
 
 	def modts3id(self, uid, change, ts3id):
