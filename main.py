@@ -5,6 +5,7 @@ import ts3tools, announce
 from ldaptools import LDAPTools
 from keytools import KeyTools
 from emailtools import EmailTools
+from authutils import group_required
 from collections import namedtuple
 from ldap import ALREADY_EXISTS
 from ldap import MOD_ADD, MOD_DELETE, MOD_REPLACE
@@ -125,9 +126,8 @@ def groups():
 
 @app.route("/groups/admin")
 @login_required
+@group_required("admin")
 def groupadmin():
-	if "admin" not in current_user.get_authgroups():
-		return redirect("/groups")
 	pendingusers = ldaptools.getusers("authGroup=*-pending")
 	applications = []
 	for user in pendingusers:
@@ -137,6 +137,7 @@ def groupadmin():
 
 @app.route("/groups/list/<group>")
 @login_required
+@group_required("admin")
 def grouplist(group):
 	users = ldaptools.getusers("authGroup="+group)
 	return render_template("groupmembers.html", group=group, members=users)
@@ -144,12 +145,11 @@ def grouplist(group):
 
 @app.route("/groups/admin/approve/<id>/<group>")
 @login_required
+@group_required("admin")
 def groupapprove(id, group):
 	try:
 		id = str(id)
 		group = str(group)
-		if "admin" not in current_user.get_authgroups():
-			return redirect("/groups")
 		ldaptools.modgroup(id, MOD_DELETE, group+"-pending")
 		ldaptools.modgroup(id, MOD_ADD, group)
 		flash("Membership of %s approved for %s" % (group, id), "success")
@@ -160,12 +160,11 @@ def groupapprove(id, group):
 
 @app.route("/groups/admin/deny/<id>/<group>")
 @login_required
+@group_required("admin")
 def groupdeny(id, group):
 	try:
 		id = str(id)
 		group = str(group)
-		if "admin" not in current_user.get_authgroups():
-			return redirect("/groups")
 		ldaptools.modgroup(id, MOD_DELETE, group+"-pending")
 		flash("Membership of %s denied for %s" % (group, id), "success")
 		return redirect("/groups/admin")
@@ -175,11 +174,10 @@ def groupdeny(id, group):
 
 @app.route("/groups/admin/remove/<id>/<group>")
 @login_required
+@group_required("admin")
 def groupremove(id, group):
 	id = str(id)
 	group = str(group)
-	if "admin" not in current_user.get_authgroups():
-		return redirect("/groups")
 	ldaptools.modgroup(id, MOD_DELETE, group)
 	flash("Membership of %s removed for %s" % (group, id), "success")
 	return redirect("/groups/list/"+group)
@@ -218,45 +216,37 @@ def group_remove(group):
 
 @app.route("/ping")
 @login_required
+@group_required("ping")
 def ping():
-	if "ping" in current_user.get_authgroups():
-		return render_template("ping.html")
-	else:
-		return redirect("/")
+	return render_template("ping.html")
 
 @app.route("/ping/send", methods=["POST"])
 @login_required
+@group_required("ping")
 def ping_send():
-	if "ping" not in current_user.get_authgroups():
-		return redirect("/")
-	else:
-		servers = map(lambda x:x + config["auth"]["domain"], ["allies.", "", "public."])
-		servers = filter(lambda x:x in request.form, servers)
-		pingbot.broadcast(current_user.get_id(),",".join(servers), request.form["message"], servers)
-		flash("Broadcasts sent to: "+", ".join(servers), "success")
-		return redirect("/ping")
+	servers = map(lambda x:x + config["auth"]["domain"], ["allies.", "", "public."])
+	servers = filter(lambda x:x in request.form, servers)
+	pingbot.broadcast(current_user.get_id(),",".join(servers), request.form["message"], servers)
+	flash("Broadcasts sent to: "+", ".join(servers), "success")
+	return redirect("/ping")
 
 @app.route("/ping/group", methods=["POST"])
 @login_required
+@group_required("ping")
 def ping_send_group():
-	if "ping" not in current_user.get_authgroups():
-		return redirect("/")
-	else:
-		count = pingbot.groupbroadcast(current_user.get_id(), "(|(authGroup={0})(corporation={0})(alliance={0}))".format(request.form["group"]), request.form["message"], request.form["group"])
-		flash("Broadcast sent to %d members in %s" % (count, request.form["group"]), "success")
-		return redirect("/ping")
+	count = pingbot.groupbroadcast(current_user.get_id(), "(|(authGroup={0})(corporation={0})(alliance={0}))".format(request.form["group"]), request.form["message"], request.form["group"])
+	flash("Broadcast sent to %d members in %s" % (count, request.form["group"]), "success")
+	return redirect("/ping")
 
 @app.route("/ping/advgroup", methods=["POST"])
 @login_required
+@group_required("ping")
 def ping_send_advgroup():
-	if "ping" not in current_user.get_authgroups():
-		return redirect("/")
-	else:
-		ldap_filter = "("+request.form["filter"]+")"
-		message = request.form["message"]
-		count = pingbot.groupbroadcast(current_user.get_id(), ldap_filter, message, ldap_filter)
-		flash("Broadcast sent to %d members in %s" % (count, ldap_filter), "success")
-		return redirect("/ping")
+	ldap_filter = "("+request.form["filter"]+")"
+	message = request.form["message"]
+	count = pingbot.groupbroadcast(current_user.get_id(), ldap_filter, message, ldap_filter)
+	flash("Broadcast sent to %d members in %s" % (count, ldap_filter), "success")
+	return redirect("/ping")
 
 @app.route("/services")
 @login_required
