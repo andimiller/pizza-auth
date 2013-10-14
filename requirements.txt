@@ -1,7 +1,0 @@
-eveapi
-xmpppy
-requests
-flask
-flask-login
-python-ldap
-ts3
