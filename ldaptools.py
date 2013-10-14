@@ -61,6 +61,16 @@ class LDAPTools():
 		l.add_s(dn, ldif)
 		l.unbind_s()
 
+	def addgroup(self, attrs):
+		l = ldap.initialize(self.config["server"])
+		l.simple_bind(self.config["admin"], self.config["password"])
+		dn = "cn=%s,%s" % (attrs["cn"], self.config["groupdn"])
+		attrs["objectClass"] = ["groupofnames"]
+		ldif = modlist.addModlist(attrs)
+		print dn, ldif
+		l.add_s(dn, ldif)
+		l.unbind_s()
+
 	def modts3id(self, uid, change, ts3id):
 		l = ldap.initialize(self.config["server"])
 		l.simple_bind(self.config["admin"], self.config["password"])
