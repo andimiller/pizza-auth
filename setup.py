@@ -12,6 +12,15 @@ setup (
 		'Topic :: Communications',
 		'Intended Audience :: Developers',
 		'Development Status :: 3 - Alpha',
+	],
+	install_requires = [
+		'eveapi',
+		'xmpppy',
+		'requests',
+		'flask',
+		'flask-login',
+		'python-ldap',
+		'python-ts3',
 	]
 )
 
