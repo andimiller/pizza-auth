@@ -260,7 +260,7 @@ def add_tss3id():
 	print "trying to auth",ts3id
 	print "account is", current_user.accountStatus[0]
 	ts3group = {
-			"PIZZA": app.config["ts3"]["servergroups"]["full"],
+			"Internal": app.config["ts3"]["servergroups"]["full"],
 			"Ally": app.config["ts3"]["servergroups"]["ally"],
 			"Ineligible": app.config["ts3"]["servergroups"]["none"]
 			}
@@ -278,7 +278,7 @@ def add_tss3id():
 def refresh_ts3id():
 	ts3ids = current_user.ts3uid
 	ts3group = {
-			"PIZZA": app.config["ts3"]["servergroups"]["full"],
+			"Internal": app.config["ts3"]["servergroups"]["full"],
 			"Ally": app.config["ts3"]["servergroups"]["ally"],
 			"Ineligible": app.config["ts3"]["servergroups"]["none"]
 			}

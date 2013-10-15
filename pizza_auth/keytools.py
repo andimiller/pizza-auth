@@ -33,7 +33,7 @@ class KeyTools():
 
 	def getCharacterStanding(self, character):
 		if character.allianceName == self.authconfig["auth"]["alliance"]:
-			return "PIZZA"
+			return "Internal"
 		elif character.allianceID in self.bluealliances:
 			return "Ally"
 		else:
