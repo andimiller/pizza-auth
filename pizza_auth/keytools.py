@@ -13,6 +13,11 @@ class KeyTools():
 		self.authconfig = config
 		self.bluealliances = self.getBlueAlliances()
 
+	def getapi(self, user):
+		api = eveapi.EVEAPIConnection()
+		auth = api.auth(keyID=user.keyID, vCode=user.vCode)
+		return auth
+
 	def getBlueAlliances(self):
 		standingsapi = eveapi.EVEAPIConnection()
 		auth = standingsapi.auth(keyID=self.config["executorkeyid"], vCode=self.config["executorkeyvcode"])
