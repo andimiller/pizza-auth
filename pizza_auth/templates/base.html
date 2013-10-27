@@ -54,9 +54,9 @@
 					<li><a href="/ping">Pings</a></li>
 				{% endif %}
 				{% if "timerboard" in current_user.get_authgroups() %}
-					<li><a href="http://timers.xxpizzaxx.com/admin">Timerboard</a></li>
+					<li><a href="http://timers.{{ config["auth"]["domain"] }}/admin">Timerboard</a></li>
 				{% else %}
-					<li><a href="http://timers.xxpizzaxx.com/">Timerboard</a></li>
+					<li><a href="http://timers.{{ config["auth"]["domain"] }}/">Timerboard</a></li>
 				{% endif %}
 				</ul>
 

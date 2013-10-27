@@ -1,4 +1,4 @@
-from flask import current_app, redirect, flash
+from flask import current_app, redirect, flash, request, abort
 from flask.ext.login import current_user
 from functools import wraps
 
@@ -15,3 +15,12 @@ def group_required(group):
 		return decorated_view
 	return real_decorator
 
+def api_key_required(func):
+	@wraps(func)
+	def decorated_view(*args, **kwargs):
+		key = request.args.get('key','')
+		if key not in current_app.config["apikeys"]:
+			abort(401)
+		else:
+			return func(*args, **kwargs)
+	return decorated_view

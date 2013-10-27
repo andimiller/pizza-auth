@@ -5,7 +5,7 @@ import ts3tools, announce
 from ldaptools import LDAPTools
 from keytools import KeyTools
 from emailtools import EmailTools
-from authutils import group_required
+from authutils import group_required, api_key_required
 from collections import namedtuple
 from ldap import ALREADY_EXISTS
 from ldap import MOD_ADD, MOD_DELETE, MOD_REPLACE
@@ -399,6 +399,14 @@ def pingcomplete():
 				entities.append(user.alliance[0])
 	term = request.args.get('term')
 	results = filter(lambda x:x.lower().startswith(term.lower()), entities+app.config["groups"]["closedgroups"]+app.config["groups"]["opengroups"])
+	return json.dumps(results)
+
+
+@app.route("/apiv1/group/<string:group>")
+@api_key_required
+def groupdump(group):
+	allusers = ldaptools.getusers("authGroup=%s" % group)
+	results = map(lambda x:x.characterName[0], allusers)
 	return json.dumps(results)
 
 @app.teardown_appcontext
