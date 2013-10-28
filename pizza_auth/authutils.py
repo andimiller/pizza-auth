@@ -8,8 +8,8 @@ def groups_required(filter_function):
 		"Decorates a function to require a certain auth group to continue"
 		@wraps(func)
 		def decorated_view(*args, **kwargs):
-			if len(filter(filter_function, current_user.authGroup)):
-				flash("You must be in one of these groups: %s to access that." % groups, "danger")
+			if len(filter(filter_function, current_user.authGroup))==0:
+				flash("You must be in one of the correct groups to access that.", "danger")
 				return redirect("/")
 			else:
 				return func(*args, **kwargs)

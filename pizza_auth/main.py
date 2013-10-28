@@ -5,7 +5,7 @@ import ts3tools, announce
 from ldaptools import LDAPTools
 from keytools import KeyTools
 from emailtools import EmailTools
-from authutils import group_required, api_key_required
+from authutils import groups_required, group_required, api_key_required
 from collections import namedtuple
 from ldap import ALREADY_EXISTS
 from ldap import MOD_ADD, MOD_DELETE, MOD_REPLACE
