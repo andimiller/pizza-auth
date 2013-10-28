@@ -148,8 +148,11 @@ def grouplist(group):
 
 @app.route("/groups/admin/approve/<id>/<group>")
 @login_required
-@group_required("admin")
+@groups_required(lambda x:x.startswith("admin"))
 def groupapprove(id, group):
+	if ("admin" not in current_user.get_authgroups()) and ("admin-%s" % group not in current_user.get_authgroups()):
+		flash("You do not have the right to do that.", "danger")
+		return redirect("/groups/admin")
 	try:
 		id = str(id)
 		group = str(group)
@@ -163,8 +166,11 @@ def groupapprove(id, group):
 
 @app.route("/groups/admin/deny/<id>/<group>")
 @login_required
-@group_required("admin")
+@groups_required(lambda x:x.startswith("admin"))
 def groupdeny(id, group):
+	if ("admin" not in current_user.get_authgroups()) and ("admin-%s" % group not in current_user.get_authgroups()):
+		flash("You do not have the right to do that.", "danger")
+		return redirect("/groups/admin")
 	try:
 		id = str(id)
 		group = str(group)
@@ -177,15 +183,16 @@ def groupdeny(id, group):
 
 @app.route("/groups/admin/remove/<id>/<group>")
 @login_required
-@group_required("admin")
+@groups_required(lambda x:x.startswith("admin"))
 def groupremove(id, group):
+	if ("admin" not in current_user.get_authgroups()) and ("admin-%s" % group not in current_user.get_authgroups()):
+		flash("You do not have the right to do that.", "danger")
+		return redirect("/groups/admin")
 	id = str(id)
 	group = str(group)
 	ldaptools.modgroup(id, MOD_DELETE, group)
 	flash("Membership of %s removed for %s" % (group, id), "success")
 	return redirect("/groups/list/"+group)
-
-
 
 @app.route("/groups/apply/<group>")
 @login_required
