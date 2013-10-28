@@ -69,9 +69,7 @@ def forgot_password():
 		recoverymap[token] = username
 		emailtools.render_email(email, "Password Recovery", "forgot_password.txt", url=url, config=app.config)
 		flash("Email sent to "+email, "success")
-		print recoverymap
 	except Exception as e:
-		print e
 		flash("Username/Email mismatch", "danger")
 	return redirect("/login")
 
@@ -84,7 +82,6 @@ def recovery(token):
 		user = ldaptools.getuser(recoverymap[token])
 		login_user(user)
 		del recoverymap[token]
-		print recoverymap
 		flash("Logged in as %s using recovery token." % user.get_id(), "success")
 		return redirect("/account")
 
@@ -131,7 +128,8 @@ def groupadmin():
 	if "admin" in current_user.authGroup:
 		groups = groups=app.config["groups"]["closedgroups"]+app.config["groups"]["opengroups"]
 	else:
-		groups = map(lambda x:x.lstrip("admin-"), filter(lambda x:x.startswith("admin-"), current_user.authGroup))
+		groups = map(lambda x:x[6:], filter(lambda x:x.startswith("admin-"), current_user.authGroup))
+	print groups
 	pendingusers = ldaptools.getusers("authGroup=*-pending")
 	applications = []
 	for user in pendingusers:

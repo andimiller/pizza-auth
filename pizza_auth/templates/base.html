@@ -47,7 +47,7 @@
 					<li><a href="/services">Services</a></li>
 					<li><a href="/groups">Groups</a></li>
 
-				{% if "admin" in current_user.get_authgroups() %}
+				{% if current_user.is_admin() %}
 					<li><a href="/groups/admin">Group Admin</a></li>
 				{% endif %}
 				{% if "ping" in current_user.get_authgroups() %}

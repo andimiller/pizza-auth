@@ -178,3 +178,6 @@ class LDAPTools():
 			else:
 				return []
 
+		def is_admin(self):
+			return bool(filter(lambda x:x.startswith("admin"), self.get_authgroups()))
+
