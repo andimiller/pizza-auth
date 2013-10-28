@@ -131,7 +131,7 @@ def groupadmin():
 	if "admin" in current_user.authGroup:
 		groups = groups=app.config["groups"]["closedgroups"]+app.config["groups"]["opengroups"]
 	else:
-		groups = map(lambda x:x.lstrip("admin-"), filter(lambda x:x.startswith("admin-"), current_user.authGroup):
+		groups = map(lambda x:x.lstrip("admin-"), filter(lambda x:x.startswith("admin-"), current_user.authGroup))
 	pendingusers = ldaptools.getusers("authGroup=*-pending")
 	applications = []
 	for user in pendingusers:
