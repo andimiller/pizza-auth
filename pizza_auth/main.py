@@ -244,9 +244,9 @@ def ping_send():
 @login_required
 @groups_required(lambda x:x.startswith("ping"))
 def ping_send_group():
-	if ("ping" not in current_user.get_authgroups()) and ("ping-%s" % group not in current_user.get_authgroups()):
+	if ("ping" not in current_user.get_authgroups()) and ("ping-%s" % request.form["group"] not in current_user.get_authgroups()):
 		flash("You do not have the right to do that.", "danger")
-		return redirect("/groups")
+		return redirect("/ping")
 	count = pingbot.groupbroadcast(current_user.get_id(), "(|(authGroup={0})(corporation={0})(alliance={0}))".format(request.form["group"]), request.form["message"], request.form["group"])
 	flash("Broadcast sent to %d members in %s" % (count, request.form["group"]), "success")
 	return redirect("/ping")
