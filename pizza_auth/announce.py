@@ -1,4 +1,4 @@
-import xmpp
+import xmpp, dns
 from ldaptools import LDAPTools
 class pingbot():
 	def __init__(self, config):
@@ -15,7 +15,13 @@ class pingbot():
 		jidparams['password'] = self.passwd
 
 		jid=xmpp.protocol.JID(jidparams['jid'])
-		cl=xmpp.Client(jid.getDomain(), debug=[])
+
+		try:
+			r = dns.resolver.query('_xmpp-client._tcp.%s' % server, dns.rdatatype.SRV)
+		if len(r)==1:
+			server = r[0].server
+
+		cl=xmpp.Client(server, debug=[])
 
 		con=cl.connect()
 		if not con:
