@@ -19,7 +19,7 @@ class pingbot():
 		try:
 			r = dns.resolver.query('_xmpp-client._tcp.%s' % server, dns.rdatatype.SRV)
 			if len(r)==1:
-				server = r[0].target.to_text()
+				server = r[0].target.to_text().rstrip(".")
 		except:
 			pass
 
