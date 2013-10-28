@@ -126,18 +126,23 @@ def groups():
 
 @app.route("/groups/admin")
 @login_required
-@group_required("admin")
+@groups_required(lambda x:x.startswith("admin"))
 def groupadmin():
+	if "admin" in current_user.authGroup:
+		groups = groups=app.config["groups"]["closedgroups"]+app.config["groups"]["opengroups"]
+	else:
+		groups = map(lambda x:x.lstrip("admin-"), filter(lambda x:x.startswith("admin-"), current_user.authGroup):
 	pendingusers = ldaptools.getusers("authGroup=*-pending")
 	applications = []
 	for user in pendingusers:
 		for group in user.get_pending_authgroups():
-			applications.append((user.get_id(), group))
-	return render_template("groupsadmin.html", applications=applications, groups=app.config["groups"]["closedgroups"]+app.config["groups"]["opengroups"])
+			if group in groups:
+				applications.append((user.get_id(), group))
+	return render_template("groupsadmin.html", applications=applications, groups=groups)
 
 @app.route("/groups/list/<group>")
 @login_required
-@group_required("admin")
+@groups_required(lambda x:x.startswith("admin"))
 def grouplist(group):
 	users = ldaptools.getusers("authGroup="+group)
 	return render_template("groupmembers.html", group=group, members=users)
