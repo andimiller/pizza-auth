@@ -181,3 +181,5 @@ class LDAPTools():
 		def is_admin(self):
 			return bool(filter(lambda x:x.startswith("admin"), self.get_authgroups()))
 
+		def can_ping(self):
+			return bool(filter(lambda x:x.startswith("ping"), self.get_authgroups()))
