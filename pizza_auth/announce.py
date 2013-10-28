@@ -1,4 +1,4 @@
-import xmpp, dns
+import xmpp, dns, dns.resolver
 from ldaptools import LDAPTools
 class pingbot():
 	def __init__(self, config):
@@ -19,7 +19,7 @@ class pingbot():
 		try:
 			r = dns.resolver.query('_xmpp-client._tcp.%s' % server, dns.rdatatype.SRV)
 		if len(r)==1:
-			server = r[0].server
+			server = r[0].target.to_text()
 
 		cl=xmpp.Client(server, debug=[])
 
