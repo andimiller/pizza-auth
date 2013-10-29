@@ -1,0 +1,67 @@
+{
+	"auth": {
+		"alliance": "Confederation of xXPIZZAXx",
+		"allianceshort": "PIZZA",
+		"domain": "xxpizzaxx.com"
+	},
+	"pingbot": {
+		"username": "",
+		"passwd": "",
+		"domain": "xxpizzaxx.com"
+	},
+
+	"keytools": {
+		"executorkeyid": "",
+		"executorkeyvcode": "",
+		"alliancelimit": 4.9
+	},
+
+	"groups": {
+		"closedgroups": [
+			"admin",
+			"ping",
+			"capital",
+			"timerboard"
+		],
+		"opengroups": [
+			"social",
+			"dota"
+		],
+		"publicgroups": [
+			"dota"
+		]
+	},
+	"ts3": {
+		"user": "serveradmin",
+		"password": "",
+		"server": "localhost",
+		"port": 10011,
+		"servergroups":	{
+			"full": "7",
+			"ally": "14",
+			"none": "8"
+		}
+	},
+
+	"ldap": {
+		"server": "ldap://localhost/",
+		"admin": "cn=admin,dc=yoursite,dc=com",
+		"password": "",
+		"basedn": "dc=yoursite,dc=com",
+		"memberdn": "ou=People,dc=yoursite,dc=com",
+		"groupdn": "ou=Groups,dc=yoursite,dc=com"
+	},
+
+	"skillindexer": {
+		"server": "localhost",
+		"user": "",
+		"password": "",
+		"database": ""
+	},
+	"mumble": {
+		"server": "mumble.yoursite.com"
+	},
+	"apikeys": [
+		"REMOVEME"
+		]
+}
