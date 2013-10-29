@@ -381,8 +381,6 @@ def character():
 		session["chars"] = json.dumps(chars, default=lambda x:x.__dict__)
 		return render_template("characters.html", characters=chars)
 	except Exception as e:
-		print e
-		raise
 		flash("Invalid API key", "danger")
 		return redirect(url_for("index"))
 
