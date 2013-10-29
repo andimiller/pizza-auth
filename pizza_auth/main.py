@@ -204,8 +204,11 @@ def groupmkadmin(id, group):
 		return redirect("/groups/admin")
 	id = str(id)
 	group = str(group)
-	ldaptools.modgroup(id, MOD_ADD, "admin-%s" % group)
-	flash("Membership of admin-%s added for %s" % (group, id), "success")
+	try:
+		ldaptools.modgroup(id, MOD_ADD, "admin-%s" % group)
+		flash("Membership of admin-%s added for %s" % (group, id), "success")
+	except:
+		flash("That user is already in that group.", "danger")
 	return redirect("/groups/list/"+group)
 
 @app.route("/groups/admin/ping/<id>/<group>")
@@ -217,8 +220,11 @@ def groupmkping(id, group):
 		return redirect("/groups/admin")
 	id = str(id)
 	group = str(group)
-	ldaptools.modgroup(id, MOD_ADD, "ping-%s" % group)
-	flash("Membership of ping-%s added for %s" % (group, id), "success")
+	try:
+		ldaptools.modgroup(id, MOD_ADD, "ping-%s" % group)
+		flash("Membership of ping-%s added for %s" % (group, id), "success")
+	except:
+		flash("That user is already in that group.", "danger")
 	return redirect("/groups/list/"+group)
 
 
