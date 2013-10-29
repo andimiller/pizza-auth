@@ -83,7 +83,7 @@ def recovery(token):
 		login_user(user)
 		del recoverymap[token]
 		flash("Logged in as %s using recovery token." % user.get_id(), "success")
-		return redirect("/account")
+		return render_template("account_reset.html")
 
 @app.route("/logout")
 @login_required
@@ -101,6 +101,11 @@ def account():
 def update_account():
 	email = request.form["email"]
 	password = request.form["password"]
+	if "oldpassword" in request.form:
+		oldpassword = request.form["oldpassword"]
+		if not ldaptools.check_credentials(current_user.get_id(), oldpassword):
+			flash("You must confirm your old password to update your account.", "danger")
+			return redirect("/account")
 	try:
 		result = ldaptools.modattr(current_user.get_id(), MOD_REPLACE, "email", email)
 		assert(result)
