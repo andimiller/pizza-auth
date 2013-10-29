@@ -194,6 +194,37 @@ def groupremove(id, group):
 	flash("Membership of %s removed for %s" % (group, id), "success")
 	return redirect("/groups/list/"+group)
 
+
+@app.route("/groups/admin/admin/<id>/<group>")
+@login_required
+@groups_required(lambda x:x.startswith("admin"))
+def groupmkadmin(id, group):
+	if ("admin" not in current_user.get_authgroups()) and ("admin-%s" % group not in current_user.get_authgroups()):
+		flash("You do not have the right to do that.", "danger")
+		return redirect("/groups/admin")
+	id = str(id)
+	group = str(group)
+	ldaptools.modgroup(id, MOD_ADD, "admin-%s" % group)
+	flash("Membership of admin-%s added for %s" % (group, id), "success")
+	return redirect("/groups/list/"+group)
+
+@app.route("/groups/admin/ping/<id>/<group>")
+@login_required
+@groups_required(lambda x:x.startswith("admin"))
+def groupmkping(id, group):
+	if ("admin" not in current_user.get_authgroups()) and ("admin-%s" % group not in current_user.get_authgroups()):
+		flash("You do not have the right to do that.", "danger")
+		return redirect("/groups/admin")
+	id = str(id)
+	group = str(group)
+	ldaptools.modgroup(id, MOD_ADD, "ping-%s" % group)
+	flash("Membership of ping-%s added for %s" % (group, id), "success")
+	return redirect("/groups/list/"+group)
+
+
+
+
+
 @app.route("/groups/apply/<group>")
 @login_required
 def group_apply(group):
