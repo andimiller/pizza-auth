@@ -24,6 +24,7 @@ setup (
 		'flask-login',
 		'python-ldap',
 		'python-ts3',
+		'redis_wrap',
 	]
 )
 
