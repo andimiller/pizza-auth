@@ -102,6 +102,10 @@ import thread
 import urllib2
 import logging
 import ConfigParser
+import eveapi
+
+
+CORPORATIONS_TICKER = {}
 
 from threading  import Timer
 from optparse   import OptionParser
@@ -135,25 +139,25 @@ default = { 'ldap':(('ldap_uri', str, 'ldap://127.0.0.1'),
 
             'user':(('id_offset', int, 1000000000),
                     ('reject_on_error', x2bool, True)),
-           
+
             'ice':(('host', str, '127.0.0.1'),
                    ('port', int, 6502),
                    ('slice', str, 'Murmur.ice'),
                    ('secret', str, ''),
                    ('watchdog', int, 30)),
-                   
+
             'iceraw':None,
-                   
+
             'murmur':(('servers', lambda x:map(int, x.split(',')), []),),
             'glacier':(('enabled', x2bool, False),
                        ('user', str, 'ldapauth'),
                        ('password', str, 'secret'),
                        ('host', str, 'localhost'),
                        ('port', int, '4063')),
-                       
+
             'log':(('level', int, logging.DEBUG),
                    ('file', str, 'LDAPauth.log'))}
- 
+
 #
 #--- Helper classes
 #
@@ -167,7 +171,7 @@ class config(object):
         cfg = ConfigParser.ConfigParser()
         cfg.optionxform = str
         cfg.read(filename)
-        
+
         for h,v in default.iteritems():
             if not v:
                 # Output this whole section as a list of raw key/value tuples
@@ -182,7 +186,7 @@ class config(object):
                         self.__dict__[h].__dict__[name] = conv(cfg.get(h, name))
                     except (ValueError, ConfigParser.NoSectionError, ConfigParser.NoOptionError):
                         self.__dict__[h].__dict__[name] = vdefault
-                    
+
 
 def do_main_program():
     #
@@ -196,77 +200,77 @@ def do_main_program():
         slicedir = ['-I' + slicedir]
     Ice.loadSlice('', slicedir + [cfg.ice.slice])
     import Murmur
-    
+
     class LDAPAuthenticatorApp(Ice.Application):
         def run(self, args):
             self.shutdownOnInterrupt()
-            
+
             if not self.initializeIceConnection():
                 return 1
 
             if cfg.ice.watchdog > 0:
                 self.failedWatch = True
                 self.checkConnection()
-                
+
             # Serve till we are stopped
             self.communicator().waitForShutdown()
             self.watchdog.cancel()
-            
+
             if self.interrupted():
                 warning('Caught interrupt, shutting down')
-                
+
             return 0
-        
+
         def initializeIceConnection(self):
             """
             Establishes the two-way Ice connection and adds the authenticator to the
             configured servers
             """
             ice = self.communicator()
-            
+
             if cfg.ice.secret:
                 debug('Using shared ice secret')
                 ice.getImplicitContext().put("secret", cfg.ice.secret)
             elif not cfg.glacier.enabled:
                 warning('Consider using an ice secret to improve security')
-                
+
             if cfg.glacier.enabled:
                 #info('Connecting to Glacier2 server (%s:%d)', glacier_host, glacier_port)
                 error('Glacier support not implemented yet')
                 #TODO: Implement this
-    
+
             info('Connecting to Ice server (%s:%d)', cfg.ice.host, cfg.ice.port)
             base = ice.stringToProxy('Meta:tcp -h %s -p %d' % (cfg.ice.host, cfg.ice.port))
             self.meta = Murmur.MetaPrx.uncheckedCast(base)
-        
+
             adapter = ice.createObjectAdapterWithEndpoints('Callback.Client', 'tcp -h %s' % cfg.ice.host)
             adapter.activate()
-            
+
             metacbprx = adapter.addWithUUID(metaCallback(self))
             self.metacb = Murmur.MetaCallbackPrx.uncheckedCast(metacbprx)
-            
+
             authprx = adapter.addWithUUID(LDAPAuthenticator())
             self.auth = Murmur.ServerUpdatingAuthenticatorPrx.uncheckedCast(authprx)
-            
+
             return self.attachCallbacks()
-        
+
         def attachCallbacks(self, quiet = False):
             """
             Attaches all callbacks for meta and authenticators
             """
-            
+
             # Ice.ConnectionRefusedException
             #debug('Attaching callbacks')
             try:
                 if not quiet: info('Attaching meta callback')
 
                 self.meta.addCallback(self.metacb)
-                
+
                 for server in self.meta.getBootedServers():
                     if not cfg.murmur.servers or server.id() in cfg.murmur.servers:
                         if not quiet: info('Setting authenticator for virtual server %d', server.id())
                         server.setAuthenticator(self.auth)
-                        
+
             except (Murmur.InvalidSecretException, Ice.UnknownUserException, Ice.ConnectionRefusedException), e:
                 if isinstance(e, Ice.ConnectionRefusedException):
                     error('Server refused connection')
@@ -276,13 +280,13 @@ def do_main_program():
                 else:
                     # We do not actually want to handle this one, re-raise it
                     raise e
-                
+
                 self.connected = False
                 return False
 
             self.connected = True
             return True
-        
+
         def checkConnection(self):
             """
             Tries reapplies all callbacks to make sure the authenticator
@@ -303,7 +307,7 @@ def do_main_program():
             # Renew the timer
             self.watchdog = Timer(cfg.ice.watchdog, self.checkConnection)
             self.watchdog.start()
-        
+
     def checkSecret(func):
         """
         Decorator that checks whether the server transmitted the right secret
@@ -311,19 +315,19 @@ def do_main_program():
         """
         if not cfg.ice.secret:
             return func
-        
+
         def newfunc(*args, **kws):
             if 'current' in kws:
                 current = kws["current"]
             else:
                 current = args[-1]
-            
+
             if not current or 'secret' not in current.ctx or current.ctx['secret'] != cfg.ice.secret:
                 error('Server transmitted invalid secret. Possible injection attempt.')
                 raise Murmur.InvalidSecretException()
-            
+
             return func(*args, **kws)
-        
+
         return newfunc
 
     def fortifyIceFu(retval = None, exceptions = (Ice.Exception,)):
@@ -332,7 +336,7 @@ def do_main_program():
         value. This helps preventing the authenticator getting stuck in
         critical code paths. Only exceptions that are instances of classes
         given in the exceptions list are not caught.
-        
+
         The default is to catch all non-Ice exceptions.
         """
         def newdec(func):
@@ -354,7 +358,7 @@ def do_main_program():
 
             return newfunc
         return newdec
-                
+
     class metaCallback(Murmur.MetaCallback):
         def __init__(self, app):
             Murmur.MetaCallback.__init__(self)
@@ -376,7 +380,7 @@ def do_main_program():
                     if hasattr(e, "unknown") and e.unknown != "Murmur::InvalidSecretException":
                         # Special handling for Murmur 1.2.2 servers with invalid slice files
                         raise e
-                    
+
                     error('Invalid ice secret')
                     return
             else:
@@ -399,14 +403,14 @@ def do_main_program():
                     return
                 except Ice.ConnectionRefusedException:
                     self.app.connected = False
-            
+
             debug('Server shutdown stopped a virtual server')
-    
+
     if cfg.user.reject_on_error: # Python 2.4 compat
         authenticateFortifyResult = (-1, None, None)
     else:
         authenticateFortifyResult = (-2, None, None)
-        
+
     class LDAPAuthenticator(Murmur.ServerUpdatingAuthenticator):
         def __init__(self):
             Murmur.ServerUpdatingAuthenticator.__init__(self)
@@ -418,69 +422,84 @@ def do_main_program():
             """
             This function is called to authenticate a user
             """
-            
+
             # Search for the user in the database
             FALL_THROUGH = -2
             AUTH_REFUSED = -1
-            
+
             if name == 'SuperUser':
                 debug('Forced fall through for SuperUser')
                 return (FALL_THROUGH, None, None)
-            
+
             #Otherwise, let's check the LDAP server
             uid = None
             try:
                 #Attempt to bind to LDAP server with user-provided credentials
                 ldap_conn = ldap.initialize(cfg.ldap.ldap_uri, 0)
                 ldap_conn.bind_s("%s=%s,%s" % (cfg.ldap.username_attr, name, cfg.ldap.users_dn), pw)
-                res = ldap_conn.search_s(cfg.ldap.users_dn, ldap.SCOPE_SUBTREE, '(%s=%s)' % (cfg.ldap.username_attr, name), [cfg.ldap.number_attr, cfg.ldap.display_attr])
+                res = ldap_conn.search_s(cfg.ldap.users_dn, ldap.SCOPE_SUBTREE, '(%s=%s)' % (cfg.ldap.username_attr, name), [cfg.ldap.number_attr, cfg.ldap.display_attr, 'corporation'])
                 match = res[0] #Only interested in the first result, as there should only be one match
-                
+
                 #Parse the user information
                 uid = int(match[1][cfg.ldap.number_attr][0])
                 displayName = match[1][cfg.ldap.display_attr][0]
+                corporation = match[1]['corporation'][0]
                 debug('User match found, display "' + displayName + '" with UID ' + repr(uid))
-                
+
                 #Optionally check groups
                 if cfg.ldap.group_cn != "" :
                     debug('Checking group membership for ' + name)
-                    
+
                     #Search for user in group
                     res = ldap_conn.search_s(cfg.ldap.group_cn, ldap.SCOPE_SUBTREE, '(%s=%s=%s,%s)' % (cfg.ldap.group_attr, cfg.ldap.username_attr, name, cfg.ldap.users_dn), [cfg.ldap.number_attr, cfg.ldap.display_attr])
-                    
+
                     # Check if the user is a member of the group
                     if len(res) < 1:
                         debug('User ' + name + ' failed with no group membership')
                         return (AUTH_REFUSED, None, None)
-                    
+
                 #Unbind and close connection
                 ldap_conn.unbind()
-                
+
             #What follows below are various what-if scenarios: authentication failures and successes
-                     
+
             #LDAP bind failed - expected to happen if bad login
-            except ldap.INVALID_CREDENTIALS: 
+            except ldap.INVALID_CREDENTIALS:
                     warning("User " + name + " failed with wrong password")
                     return (AUTH_REFUSED, None, None)
-    
+
             #If we get here, the login is correct.
+            if corporation not in CORPORATIONS_TICKER:
+                try:
+                    api = eveapi.EVEAPIConnection()
+                    character_id = api.eve.CharacterID(names=displayName).characters[0].characterID
+                    character_sheet = api.eve.CharacterInfo(characterID=character_id)
+                    corporation_sheet = api.corp.CorporationSheet(corporationID=character_sheet.corporationID)
+                    ticker = CORPORATIONS_TICKER[corporation] = corporation_sheet.ticker
+                except Exception, e:
+                    warning('Could not retrieve Ticker for corporation {corporation}'.format(corporation=corporation))
+                    ticker = 'NOTICKER'
+            else:
+                ticker = CORPORATIONS_TICKER[corporation]
+
+
             #Add the user/id combo to cache, then accept:
             self.name_uid_cache[displayName] = uid
             debug("Login accepted for " + name)
-            return (uid + cfg.user.id_offset, displayName, [])
-            
+            return (uid + cfg.user.id_offset, ticker + ' - ' + displayName, [])
+
         @fortifyIceFu((False, None))
         @checkSecret
         def getInfo(self, id, current = None):
             """
             Gets called to fetch user specific information
             """
-            
+
             # We do not expose any additional information so always fall through
             debug('getInfo for %d -> denied', id)
             return (False, None)
 
-    
+
         @fortifyIceFu(-2)
         @checkSecret
         def nameToId(self, name, current = None):
@@ -488,19 +507,19 @@ def do_main_program():
             Gets called to get the id for a given username
             """
             FALL_THROUGH = -2
-            
+
             if name == 'SuperUser':
                 debug('nameToId SuperUser -> forced fall through')
                 return FALL_THROUGH
-            
+
             if name in self.name_uid_cache:
                 uid = self.name_uid_cache[name] + cfg.user.id_offset
                 debug("nameToId %s (cache) -> %d", name, uid)
                 return uid
-            
+
             ldap_conn = ldap.initialize(cfg.ldap.ldap_uri, 0) #Anon search
             res = ldap_conn.search_s(cfg.ldap.users_dn, ldap.SCOPE_SUBTREE, '(%s=%s)' % (cfg.ldap.display_attr, name), [cfg.ldap.number_attr])
-            
+
             #If user found, return the ID
             if len(res) == 1:
                 uid = int(res[0][1][cfg.ldap.number_attr][0]) + cfg.user.id_offset
@@ -508,57 +527,57 @@ def do_main_program():
             else:
                 debug('nameToId %s -> ?', name)
                 return FALL_THROUGH
-            
+
             return result
-        
-        
+
+
         @fortifyIceFu("")
         @checkSecret
         def idToName(self, id, current = None):
             """
             Gets called to get the username for a given id
             """
-            
+
             FALL_THROUGH = ""
 
             # Make sure the ID is in our range and transform it to the actual LDAP user id
             if id < cfg.user.id_offset:
                 debug('idToName %d -> fall through', id)
-                return FALL_THROUGH 
-            
+                return FALL_THROUGH
+
             ldapid = id - cfg.user.id_offset
-            
+
             for name, uid in self.name_uid_cache.iteritems():
                 if uid == ldapid:
                     if name == 'SuperUser':
                         debug('idToName %d -> "SuperUser" catched', id)
                         return FALL_THROUGH
-                    
+
                     debug('idToName %d -> "%s"', id, name)
                     return name
-                
+
             debug('idToName %d -> ?', id)
             return FALL_THROUGH
-         
-            
+
+
         @fortifyIceFu("")
         @checkSecret
         def idToTexture(self, id, current = None):
             """
             Gets called to get the corresponding texture for a user
             """
-            
+
             FALL_THROUGH = ""
             debug('idToTexture %d -> fall through', id)
             return FALL_THROUGH
-            
+
         @fortifyIceFu(-2)
         @checkSecret
         def registerUser(self, name, current = None):
             """
             Gets called when the server is asked to register a user.
             """
-            
+
             FALL_THROUGH = -2
             debug('registerUser "%s" -> fall through', name)
             return FALL_THROUGH
@@ -569,7 +588,7 @@ def do_main_program():
             """
             Gets called when the server is asked to unregister a user.
             """
-            
+
             FALL_THROUGH = -1
             # Return -1 to fall through to internal server database, we will not modify the LDAP directory
             # but we can make murmur delete all additional information it got this way.
@@ -586,7 +605,7 @@ def do_main_program():
             FALL_THROUGH = {}
             debug('getRegisteredUsers -> fall through')
             return FALL_THROUGH
-        
+
         @fortifyIceFu(-1)
         @checkSecret
         def setInfo(self, id, info, current = None):
@@ -594,13 +613,13 @@ def do_main_program():
             Gets called when the server is supposed to save additional information
             about a user to his database
             """
-            
+
             FALL_THROUGH = -1
             # Return -1 to fall through to the internal server handler. We do not store
             # any information in LDAP
             debug('setInfo %d -> fall through', id)
             return FALL_THROUGH
-        
+
         @fortifyIceFu(-1)
         @checkSecret
         def setTexture(self, id, texture, current = None):
@@ -608,30 +627,30 @@ def do_main_program():
             Gets called when the server is asked to update the user texture of a user
             """
             FALL_THROUGH = -1
-            
+
             # We do not store textures in LDAP
             debug('setTexture %d -> fall through', id)
             return FALL_THROUGH
-        
+
     class CustomLogger(Ice.Logger):
         """
         Logger implementation to pipe Ice log messages into
         out own log
         """
-        
+
         def __init__(self):
             Ice.Logger.__init__(self)
             self._log = getLogger('Ice')
-            
+
         def _print(self, message):
             self._log.info(message)
-            
+
         def trace(self, category, message):
             self._log.debug('Trace %s: %s', category, message)
-            
+
         def warning(self, message):
             self._log.warning(message)
-            
+
         def error(self, message):
             self._log.error(message)
 
@@ -643,10 +662,10 @@ def do_main_program():
     initdata.properties = Ice.createProperties([], initdata.properties)
     for prop, val in cfg.iceraw:
         initdata.properties.setProperty(prop, val)
-        
+
     initdata.properties.setProperty('Ice.ImplicitContext', 'Shared')
     initdata.logger = CustomLogger()
-    
+
     app = LDAPAuthenticatorApp()
     state = app.main(sys.argv[:1], initData = initdata)
     info('Shutdown complete')
@@ -668,19 +687,19 @@ if __name__ == '__main__':
     parser.add_option('-a', '--app', action='store_true', dest = 'force_app',
                       help = 'do not run as daemon', default = False)
     (option, args) = parser.parse_args()
-    
+
     if option.force_daemon and option.force_app:
         parser.print_help()
         sys.exit(1)
-        
+
     # Load configuration
     try:
         cfg = config(option.ini, default)
     except Exception, e:
         print>>sys.stderr, 'Fatal error, could not load config file from "%s"' % cfgfile
         sys.exit(1)
-    
-    
+
+
     # Initialize logger
     if cfg.log.file:
         try:
@@ -691,19 +710,19 @@ if __name__ == '__main__':
             sys.exit(1)
     else:
         logfile = logging.sys.stderr
-        
-            
+
+
     if option.verbose:
         level = cfg.log.level
     else:
         level = logging.ERROR
-    
+
     logging.basicConfig(level = level,
                         format='%(asctime)s %(levelname)s %(message)s',
                         stream = logfile)
-        
+
     # As the default try to run as daemon. Silently degrade to running as a normal application if this fails
-    # unless the user explicitly defined what he expected with the -a / -d parameter. 
+    # unless the user explicitly defined what he expected with the -a / -d parameter.
     try:
         if option.force_app:
             raise ImportError # Pretend that we couldn't import the daemon lib
