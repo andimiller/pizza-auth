@@ -11,25 +11,25 @@ class KeyTools():
 	def __init__(self, config):
 		self.config = config["keytools"]
 		self.authconfig = config
-		self.bluealliances, self.coalitionalliances = self.getBlueAlliances()
+		self.bluealliances = self.getBlueAlliances()
+
+	def getapi(self, user):
+		api = eveapi.EVEAPIConnection()
+		auth = api.auth(keyID=user.keyID, vCode=user.vCode)
+		return auth
 
 	def getBlueAlliances(self):
 		standingsapi = eveapi.EVEAPIConnection()
 		auth = standingsapi.auth(keyID=self.config["executorkeyid"], vCode=self.config["executorkeyvcode"])
 		standings = auth.corp.ContactList().allianceContactList
 		standings = filter(lambda x:x.standing>self.config["alliancelimit"], standings)
-                coalition = filter(lambda x:x.standing>self.config["coalitionlimit"], standings)
 		alliances = auth.eve.AllianceList().alliances
 		alliances = map(lambda x:x.allianceID, alliances)
 		bluealliances = {}
-                coalitionalliances = {}
 		for contact in standings:
 			if contact.contactID in alliances:
 				bluealliances[contact.contactID] = contact.contactName
-                                if contact.standing == 10:
-                                        coalitionalliances[contact.contactID] = contact.contactName
-
-		return bluealliances, coalitionalliances
+		return bluealliances
 
 	def getExpiry(self, character):
 		accountstatusapi = eveapi.EVEAPIConnection()
@@ -39,8 +39,6 @@ class KeyTools():
 	def getCharacterStanding(self, character):
 		if character.allianceName == self.authconfig["auth"]["alliance"]:
 			return "Internal"
-                elif character.allianceID in self.coalitionalliances:
-                        return "Coalition"
 		elif character.allianceID in self.bluealliances:
 			return "Ally"
 		else:

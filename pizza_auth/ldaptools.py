@@ -7,7 +7,6 @@ from flask.ext.login import UserMixin
 
 class ServerDownException(Exception): pass
 
-
 class LDAPTools():
 	def __init__(self, config):
 		self.authconfig = config
@@ -23,6 +22,16 @@ class LDAPTools():
 		attrs["objectClass"] = ['top', 'account', 'simpleSecurityObject', 'xxPilot']
 		attrs["userPassword"] = self.makeSecret(attrs["userPassword"])
 		ldif = modlist.addModlist(attrs)
+		l.add_s(dn, ldif)
+		l.unbind_s()
+
+	def addgroup(self, attrs):
+		l = ldap.initialize(self.config["server"])
+		l.simple_bind(self.config["admin"], self.config["password"])
+		dn = "cn=%s,%s" % (attrs["cn"], self.config["groupdn"])
+		attrs["objectClass"] = ["groupofnames"]
+		ldif = modlist.addModlist(attrs)
+		print dn, ldif
 		l.add_s(dn, ldif)
 		l.unbind_s()
 
@@ -42,13 +51,6 @@ class LDAPTools():
 		l.unbind_s()
 		return True
 
-        def updateattrs(self, uid, change, av_dict):
-                l = ldap.initialize(self.config["server"])
-                l.simple_bind(self.config["admin"], self.config["password"])
-                dn = "uid=%s,%s" % (uid, self.config["memberdn"])
-                l.modify_s(dn, [(change, str(k), str(v)) for k,v in av_dict.items()])
-                return True
-
 	def deleteuser(self, uid):
 		l = ldap.initialize(self.config["server"])
 		l.simple_bind(self.config["admin"], self.config["password"])
@@ -66,11 +68,6 @@ class LDAPTools():
 		return True
 
 	def updateuser(self, uid, modattrs):
-                """
-                updateuser(self, uid, modattrs)
-                uid - user.get_id()
-                modattrs - {}
-                """
 		l = ldap.initialize(self.config["server"])
 		l.simple_bind(self.config["admin"], self.config["password"])
 		dn = "uid=%s,%s" % (uid, self.config["memberdn"])
@@ -145,41 +142,44 @@ class LDAPTools():
 					results.append(result_data[0][1])
 		return map(lambda x:self.User(x, self.authconfig["auth"]["domain"]), results)
 
+	class User(UserMixin):
 
-        class User(UserMixin):
+		def __init__(self, attr, domain):
+			self.__dict__.update(attr)
+			self.domain = domain
 
-                def __init__(self, attr, domain):
-                        self.__dict__.update(attr)
-                        self.domain = domain
+		def get_id(self):
+			return self.uid[0]
 
-                def get_id(self):
-                        return self.uid[0]
+		def get_authgroups(self):
+			if not hasattr(self, "authGroup"):
+				return []
+			else:
+				return filter(lambda x:not x.endswith("-pending"), self.authGroup)
 
-                def get_authgroups(self):
-                        if not hasattr(self, "authGroup"):
-                                return []
-                        else:
-                                return filter(lambda x:not x.endswith("-pending"), self.authGroup)
+		def get_pending_authgroups(self):
+			if not hasattr(self, "authGroup"):
+				return []
+			else:
+				results = filter(lambda x:x.endswith("-pending"), self.authGroup)
+				return map(lambda x:x[:-8], results)
 
-                def get_pending_authgroups(self):
-                        if not hasattr(self, "authGroup"):
-                                return []
-                        else:
-                                results = filter(lambda x:x.endswith("-pending"), self.authGroup)
-                                return map(lambda x:x[:-8], results)
+		def get_jid(self):
+			domains = {
+				"Internal": self.domain,
+				"Ally": "allies." + self.domain,
+				"Ineligible": "public." + self.domain
+			}
+			return "%s@%s" % (self.uid[0], domains[self.accountStatus[0]])
 
-                def get_jid(self):
-                        domains = {
-                                "Internal": self.domain,
-                                "OI": self.domain,
-                                "Ally": "allies." + self.domain,
-                                "Ineligible": "public." + self.domain
-                        }
-                        return "%s@%s" % (self.uid[0], domains[self.accountStatus[0]])
+		def get_ts3ids(self):
+			if hasattr(self, "ts3uid"):
+				return self.ts3uid
+			else:
+				return []
 
-                def get_ts3ids(self):
-                        if hasattr(self, "ts3uid"):
-                                return self.ts3uid
-                        else:
-                                return []
+		def is_admin(self):
+			return bool(filter(lambda x:x.startswith("admin"), self.get_authgroups()))
 
+		def can_ping(self):
+			return bool(filter(lambda x:x.startswith("ping"), self.get_authgroups()))

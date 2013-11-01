@@ -5,9 +5,9 @@
 		"domain": "xxpizzaxx.com"
 	},
 	"pingbot": {
-		"username": "pingbot",
+		"username": "",
 		"passwd": "",
-		"domain": ""
+		"domain": "xxpizzaxx.com"
 	},
 
 	"keytools": {
@@ -20,11 +20,12 @@
 		"closedgroups": [
 			"admin",
 			"ping",
-			"capital"
+			"capital",
+			"timerboard"
 		],
 		"opengroups": [
-			"dota",
-			"social"
+			"social",
+			"dota"
 		],
 		"publicgroups": [
 			"dota"
@@ -33,31 +34,34 @@
 	"ts3": {
 		"user": "serveradmin",
 		"password": "",
-		"server": "",
+		"server": "localhost",
 		"port": 10011,
 		"servergroups":	{
-			"full": "1",
-			"ally": "2",
-			"none": "3"
+			"full": "7",
+			"ally": "14",
+			"none": "8"
 		}
 	},
-        "mumble": {
-                "server": "example.com"
-        },
 
 	"ldap": {
 		"server": "ldap://localhost/",
 		"admin": "cn=admin,dc=yoursite,dc=com",
 		"password": "",
 		"basedn": "dc=yoursite,dc=com",
-		"memberdn": "ou=People,dc=yoursite,dc=com"
+		"memberdn": "ou=People,dc=yoursite,dc=com",
+		"groupdn": "ou=Groups,dc=yoursite,dc=com"
 	},
 
 	"skillindexer": {
 		"server": "localhost",
-		"user": "authuser",
+		"user": "",
 		"password": "",
-		"database": "auth"
-	}
-
+		"database": ""
+	},
+	"mumble": {
+		"server": "mumble.yoursite.com"
+	},
+	"apikeys": [
+		"REMOVEME"
+		]
 }

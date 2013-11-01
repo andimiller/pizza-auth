@@ -5,7 +5,7 @@ import ts3tools, announce
 from ldaptools import LDAPTools
 from keytools import KeyTools
 from emailtools import EmailTools
-from reddittools import RedditTools
+from authutils import groups_required, group_required, api_key_required
 from collections import namedtuple
 from ldap import ALREADY_EXISTS
 from ldap import MOD_ADD, MOD_DELETE, MOD_REPLACE
@@ -25,7 +25,6 @@ login_manager.init_app(app)
 pingbot = announce.pingbot(app.config)
 ts3manager = ts3tools.ts3manager(app.config)
 ldaptools = LDAPTools(app.config)
-reddittools = RedditTools(app.config,ldaptools)
 keytools = KeyTools(app.config)
 emailtools = EmailTools(app.config)
 
@@ -70,9 +69,7 @@ def forgot_password():
 		recoverymap[token] = username
 		emailtools.render_email(email, "Password Recovery", "forgot_password.txt", url=url, config=app.config)
 		flash("Email sent to "+email, "success")
-		print recoverymap
 	except Exception as e:
-		print e
 		flash("Username/Email mismatch", "danger")
 	return redirect("/login")
 
@@ -85,9 +82,8 @@ def recovery(token):
 		user = ldaptools.getuser(recoverymap[token])
 		login_user(user)
 		del recoverymap[token]
-		print recoverymap
 		flash("Logged in as %s using recovery token." % user.get_id(), "success")
-		return redirect("/account")
+		return render_template("account_reset.html")
 
 @app.route("/logout")
 @login_required
@@ -105,6 +101,11 @@ def account():
 def update_account():
 	email = request.form["email"]
 	password = request.form["password"]
+	if "oldpassword" in request.form:
+		oldpassword = request.form["oldpassword"]
+		if not ldaptools.check_credentials(current_user.get_id(), oldpassword):
+			flash("You must confirm your old password to update your account.", "danger")
+			return redirect("/account")
 	try:
 		result = ldaptools.modattr(current_user.get_id(), MOD_REPLACE, "email", email)
 		assert(result)
@@ -114,35 +115,6 @@ def update_account():
 	except Exception:
 		flash("Update failed", "danger")
 	return redirect("/account")
-
-@app.route("/account/reddit")
-@login_required
-def reddit():
-        redirect_uri = "http://newauth.talkinlocal.org" + url_for('reddit_loop')
-        if hasattr(current_user, 'redditAccount'):
-                flash("Already registered with reddit: %s" % (current_user.redditName,), "error")
-                return redirect(url_for('account'))
-
-        r = reddittools.get_reddit_client(redirect_uri)
-        url = r.get_authorize_url(app.config["reddit"]["statekey"], 'identity', False)
-        return redirect(url)
-
-@app.route("/account/reddit/loop")
-@login_required
-def reddit_loop():
-        query = request.args
-        result = reddittools.verify_token(
-                current_user.get_id(),
-                query
-                )
-
-        if result:
-                user = load_user(current_user.get_id())
-                flash("Successfully updated or added reddit account: %s." % (user.redditName[0],), "success")
-        else:
-                flash("Failed to update reddit account.", "danger")
-
-        return redirect(url_for("index"))
 
 @app.route("/groups")
 @login_required
@@ -156,18 +128,24 @@ def groups():
 
 @app.route("/groups/admin")
 @login_required
+@groups_required(lambda x:x.startswith("admin"))
 def groupadmin():
-	if "admin" not in current_user.get_authgroups():
-		return redirect("/groups")
+	if "admin" in current_user.authGroup:
+		groups = groups=app.config["groups"]["closedgroups"]+app.config["groups"]["opengroups"]
+	else:
+		groups = map(lambda x:x[6:], filter(lambda x:x.startswith("admin-"), current_user.authGroup))
+	print groups
 	pendingusers = ldaptools.getusers("authGroup=*-pending")
 	applications = []
 	for user in pendingusers:
 		for group in user.get_pending_authgroups():
-			applications.append((user.get_id(), group))
-	return render_template("groupsadmin.html", applications=applications, groups=app.config["groups"]["closedgroups"]+app.config["groups"]["opengroups"])
+			if group in groups:
+				applications.append((user.get_id(), group))
+	return render_template("groupsadmin.html", applications=applications, groups=groups)
 
 @app.route("/groups/list/<group>")
 @login_required
+@groups_required(lambda x:x.startswith("admin"))
 def grouplist(group):
 	users = ldaptools.getusers("authGroup="+group)
 	return render_template("groupmembers.html", group=group, members=users)
@@ -175,12 +153,14 @@ def grouplist(group):
 
 @app.route("/groups/admin/approve/<id>/<group>")
 @login_required
+@groups_required(lambda x:x.startswith("admin"))
 def groupapprove(id, group):
+	if ("admin" not in current_user.get_authgroups()) and ("admin-%s" % group not in current_user.get_authgroups()):
+		flash("You do not have the right to do that.", "danger")
+		return redirect("/groups/admin")
 	try:
 		id = str(id)
 		group = str(group)
-		if "admin" not in current_user.get_authgroups():
-			return redirect("/groups")
 		ldaptools.modgroup(id, MOD_DELETE, group+"-pending")
 		ldaptools.modgroup(id, MOD_ADD, group)
 		flash("Membership of %s approved for %s" % (group, id), "success")
@@ -191,12 +171,14 @@ def groupapprove(id, group):
 
 @app.route("/groups/admin/deny/<id>/<group>")
 @login_required
+@groups_required(lambda x:x.startswith("admin"))
 def groupdeny(id, group):
+	if ("admin" not in current_user.get_authgroups()) and ("admin-%s" % group not in current_user.get_authgroups()):
+		flash("You do not have the right to do that.", "danger")
+		return redirect("/groups/admin")
 	try:
 		id = str(id)
 		group = str(group)
-		if "admin" not in current_user.get_authgroups():
-			return redirect("/groups")
 		ldaptools.modgroup(id, MOD_DELETE, group+"-pending")
 		flash("Membership of %s denied for %s" % (group, id), "success")
 		return redirect("/groups/admin")
@@ -206,14 +188,51 @@ def groupdeny(id, group):
 
 @app.route("/groups/admin/remove/<id>/<group>")
 @login_required
+@groups_required(lambda x:x.startswith("admin"))
 def groupremove(id, group):
+	if ("admin" not in current_user.get_authgroups()) and ("admin-%s" % group not in current_user.get_authgroups()):
+		flash("You do not have the right to do that.", "danger")
+		return redirect("/groups/admin")
 	id = str(id)
 	group = str(group)
-	if "admin" not in current_user.get_authgroups():
-		return redirect("/groups")
 	ldaptools.modgroup(id, MOD_DELETE, group)
 	flash("Membership of %s removed for %s" % (group, id), "success")
 	return redirect("/groups/list/"+group)
+
+
+@app.route("/groups/admin/admin/<id>/<group>")
+@login_required
+@groups_required(lambda x:x.startswith("admin"))
+def groupmkadmin(id, group):
+	if ("admin" not in current_user.get_authgroups()) and ("admin-%s" % group not in current_user.get_authgroups()):
+		flash("You do not have the right to do that.", "danger")
+		return redirect("/groups/admin")
+	id = str(id)
+	group = str(group)
+	try:
+		ldaptools.modgroup(id, MOD_ADD, "admin-%s" % group)
+		flash("Membership of admin-%s added for %s" % (group, id), "success")
+	except:
+		flash("That user is already in that group.", "danger")
+	return redirect("/groups/list/"+group)
+
+@app.route("/groups/admin/ping/<id>/<group>")
+@login_required
+@groups_required(lambda x:x.startswith("admin"))
+def groupmkping(id, group):
+	if ("admin" not in current_user.get_authgroups()) and ("admin-%s" % group not in current_user.get_authgroups()):
+		flash("You do not have the right to do that.", "danger")
+		return redirect("/groups/admin")
+	id = str(id)
+	group = str(group)
+	try:
+		ldaptools.modgroup(id, MOD_ADD, "ping-%s" % group)
+		flash("Membership of ping-%s added for %s" % (group, id), "success")
+	except:
+		flash("That user is already in that group.", "danger")
+	return redirect("/groups/list/"+group)
+
+
 
 
 
@@ -249,45 +268,40 @@ def group_remove(group):
 
 @app.route("/ping")
 @login_required
+@groups_required(lambda x:x.startswith("ping"))
 def ping():
-	if "ping" in current_user.get_authgroups():
-		return render_template("ping.html")
-	else:
-		return redirect("/")
+	return render_template("ping.html")
 
 @app.route("/ping/send", methods=["POST"])
 @login_required
+@group_required("ping")
 def ping_send():
-	if "ping" not in current_user.get_authgroups():
-		return redirect("/")
-	else:
-		servers = map(lambda x:x + config["auth"]["domain"], ["allies.", "", "public."])
-		servers = filter(lambda x:x in request.form, servers)
-		pingbot.broadcast(current_user.get_id(),",".join(servers), request.form["message"], servers)
-		flash("Broadcasts sent to: "+", ".join(servers), "success")
-		return redirect("/ping")
+	servers = map(lambda x:x + config["auth"]["domain"], ["allies.", "", "public."])
+	servers = filter(lambda x:x in request.form, servers)
+	pingbot.broadcast(current_user.get_id(),",".join(servers), request.form["message"], servers)
+	flash("Broadcasts sent to: "+", ".join(servers), "success")
+	return redirect("/ping")
 
 @app.route("/ping/group", methods=["POST"])
 @login_required
+@groups_required(lambda x:x.startswith("ping"))
 def ping_send_group():
-	if "ping" not in current_user.get_authgroups():
-		return redirect("/")
-	else:
-		count = pingbot.groupbroadcast(current_user.get_id(), "(|(authGroup={0})(corporation={0})(alliance={0}))".format(request.form["group"]), request.form["message"], request.form["group"])
-		flash("Broadcast sent to %d members in %s" % (count, request.form["group"]), "success")
+	if ("ping" not in current_user.get_authgroups()) and ("ping-%s" % request.form["group"] not in current_user.get_authgroups()):
+		flash("You do not have the right to do that.", "danger")
 		return redirect("/ping")
+	count = pingbot.groupbroadcast(current_user.get_id(), "(|(authGroup={0})(corporation={0})(alliance={0}))".format(request.form["group"]), request.form["message"], request.form["group"])
+	flash("Broadcast sent to %d members in %s" % (count, request.form["group"]), "success")
+	return redirect("/ping")
 
 @app.route("/ping/advgroup", methods=["POST"])
 @login_required
+@group_required("ping")
 def ping_send_advgroup():
-	if "ping" not in current_user.get_authgroups():
-		return redirect("/")
-	else:
-		ldap_filter = "("+request.form["filter"]+")"
-		message = request.form["message"]
-		count = pingbot.groupbroadcast(current_user.get_id(), ldap_filter, message, ldap_filter)
-		flash("Broadcast sent to %d members in %s" % (count, ldap_filter), "success")
-		return redirect("/ping")
+	ldap_filter = "("+request.form["filter"]+")"
+	message = request.form["message"]
+	count = pingbot.groupbroadcast(current_user.get_id(), ldap_filter, message, ldap_filter)
+	flash("Broadcast sent to %d members in %s" % (count, ldap_filter), "success")
+	return redirect("/ping")
 
 @app.route("/services")
 @login_required
@@ -367,8 +381,6 @@ def character():
 		session["chars"] = json.dumps(chars, default=lambda x:x.__dict__)
 		return render_template("characters.html", characters=chars)
 	except Exception as e:
-		print e
-		raise
 		flash("Invalid API key", "danger")
 		return redirect(url_for("index"))
 
@@ -440,6 +452,14 @@ def pingcomplete():
 				entities.append(user.alliance[0])
 	term = request.args.get('term')
 	results = filter(lambda x:x.lower().startswith(term.lower()), entities+app.config["groups"]["closedgroups"]+app.config["groups"]["opengroups"])
+	return json.dumps(results)
+
+
+@app.route("/apiv1/group/<string:group>")
+@api_key_required
+def groupdump(group):
+	allusers = ldaptools.getusers("authGroup=%s" % group)
+	results = map(lambda x:x.characterName[0], allusers)
 	return json.dumps(results)
 
 @app.teardown_appcontext

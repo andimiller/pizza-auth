@@ -3,6 +3,7 @@
 {% block header %}Ping Tool{% endblock %}
 {% block body %}
 <div class="row">
+	{% if "ping" in current_user.get_authgroups() %}
 	<div class="col-md-4">
 		<div class="panel panel-primary">
 		<div class="panel-heading"><h3 class="panel-title">Server-wide Ping</h3></div>
@@ -32,6 +33,7 @@
 		</form>
 		</div>
 	</div>
+	{% endif %}
 
 	<div class="col-md-4">
 		<div class="panel panel-primary">
@@ -48,6 +50,8 @@
 		</form>
 		</div>
 	</div>
+
+	{% if "ping" in current_user.get_authgroups() %}
 	<div class="col-md-4">
 		<div class="panel panel-primary">
 		<div class="panel-heading"><h3 class="panel-title">Advanced Group Ping</h3></div>
@@ -62,6 +66,7 @@
 			</form>
 		</div>
 	</div>
+	{% endif %}
 </div class="row">
 
 <script>

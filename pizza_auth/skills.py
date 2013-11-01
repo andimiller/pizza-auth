@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-#import MySQLdb
-import sqlite3
+import MySQLdb
 import urllib
 import re
 import pygments.console
@@ -56,8 +55,7 @@ class SkillIndexer():
 		for t, l in skills:
 			t=int(t)
 			l=int(l)
-                        print "%s: %s %s" % (name, t, l)
-			#r = db.execute('INSERT INTO skills (name, typeid, level) VALUES (%s, %s, %s)', (name, t, l, l) )
+			r = db.execute('INSERT INTO skills (name, typeid, level) VALUES (%s, %s, %s) ON DUPLICATE KEY UPDATE level=%s', (name, t, l, l) )
 
 
 	def main(self):
@@ -65,10 +63,9 @@ class SkillIndexer():
 		everyone = self.ldaptools.getusers("alliance=" + self.authconfig["auth"]["alliance"])
 
 		#database server
-		#db = MySQLdb.connect(self.config["server"], self.config["user"], self.config["password"], self.config["database"])
-                db = sqlite3.connect('skills.db')
+		db = MySQLdb.connect(self.config["server"], self.config["user"], self.config["password"], self.config["database"])
 		c = db.cursor()
-		c.execute('delete from skills;')
+		c.execute('truncate skills;')
 		for user in everyone:
 			try:
 				self.getSkills(c, user.characterName[0], user.keyID[0], user.vCode[0])

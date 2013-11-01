@@ -13,7 +13,13 @@
 				<td>{{ user.characterName[0] }}</td>
 				<td>{{ user.corporation[0] }}</td>
 				<td>{% if user.alliance is defined %}{{ user.alliance[0] }}{% endif %}</td>
-				<td><a class="btn btn-xs btn-danger pull-right" href="/groups/admin/remove/{{ user.get_id() }}/{{ group }}">Remove</a></td>
+				<td>
+					<div class="btn-group pull-right">
+						<a class="btn btn-xs btn-success" href="/groups/admin/admin/{{ user.get_id() }}/{{ group }}">Admin</a>
+						<a class="btn btn-xs btn-info" href="/groups/admin/ping/{{ user.get_id() }}/{{ group }}">Ping</a>
+						<a class="btn btn-xs btn-danger" href="/groups/admin/remove/{{ user.get_id() }}/{{ group }}">Remove</a>
+					</div>
+				</td>
 			</tr>
 			{% endfor %}
 		</table>
