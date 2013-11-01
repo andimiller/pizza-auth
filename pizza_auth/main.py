@@ -11,6 +11,7 @@ from collections import namedtuple
 from ldap import ALREADY_EXISTS
 from ldap import MOD_ADD, MOD_DELETE, MOD_REPLACE
 import string, random
+import redis_wrap
 
 app = Flask(__name__)
 
@@ -58,7 +59,7 @@ def login():
 		return redirect("/login")
 login_manager.login_view = "/login"
 
-recoverymap = {}
+recoverymap = redis_wrap.get_hash("recovery")
 
 @app.route("/forgot_password", methods=["POST", "GET"])
 def forgot_password():

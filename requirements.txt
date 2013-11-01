@@ -5,3 +5,4 @@ flask
 flask-login
 python-ldap
 ts3
+redis_wrap

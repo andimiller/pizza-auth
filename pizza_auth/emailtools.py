@@ -1,16 +1,17 @@
-from jinja2 import FileSystemLoader
+from jinja2 import PackageLoader
 from jinja2.environment import Environment
 import smtplib
 from email.mime.text import MIMEText
 import time
 import json
+import os
 
 class EmailTools():
 
 	def __init__(self, config):
 		self.config = config
 		self.env = Environment()
-		self.env.loader = FileSystemLoader('templates/email')
+		self.env.loader = PackageLoader('pizza_auth')
 
 	def send_email(self, to, subject, body):
 		msg = MIMEText(body)
@@ -24,7 +25,7 @@ class EmailTools():
 		s.quit()
 
 	def render_email(self, to, subject, template, **kwargs):
-		template = self.env.get_template(template)
+		template = self.env.get_template("email/"+template)
 		print template.render(**kwargs)
 		self.send_email(to, subject, template.render(**kwargs))
 
