@@ -34,7 +34,7 @@ class RedditTools():
             if code and state:
                 state_key = self.config["statekey"]
                 if state_key == state:
-                    r = self.get_reddit_client("http://newauth.talkinlocal.org" + url_for('reddit_loop'))
+                    r = self.get_reddit_client(self.config["redirect_base"] + url_for('reddit_loop'))
                     access_info = r.get_access_information(code)
                     auth_reddit = r.get_me()
                     if 'redditAccount' in user.objectClass:

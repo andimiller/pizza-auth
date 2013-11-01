@@ -61,6 +61,14 @@
 	"mumble": {
 		"server": "mumble.yoursite.com"
 	},
+	"reddit": {
+		"comment": "REMOVE ENTIRE SECTION IF YOU'RE NOT USING REDDIT VERIFICATION",
+		"clientname":	"",
+		"clientid": 	"",
+		"clientsecret":	"",
+		"redirect_base": "http://host:port",
+		"statekey":	""
+	},
 	"apikeys": [
 		"REMOVEME"
 		]

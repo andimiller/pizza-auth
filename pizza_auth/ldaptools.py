@@ -51,6 +51,13 @@ class LDAPTools():
 		l.unbind_s()
 		return True
 
+	def updateattrs(self, uid, change, av_dict):
+		l = ldap.initialize(self.config["server"])
+		l.simple_bind(self.config["admin"], self.config["password"])
+		dn = "uid=%s,%s" % (uid, self.config["memberdn"])
+		l.modify_s(dn, [(change, str(k), str(v)) for k,v in av_dict.items()])
+		return True
+
 	def deleteuser(self, uid):
 		l = ldap.initialize(self.config["server"])
 		l.simple_bind(self.config["admin"], self.config["password"])

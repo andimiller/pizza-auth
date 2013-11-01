@@ -5,6 +5,7 @@ import ts3tools, announce
 from ldaptools import LDAPTools
 from keytools import KeyTools
 from emailtools import EmailTools
+from reddittools import RedditTools
 from authutils import groups_required, group_required, api_key_required
 from collections import namedtuple
 from ldap import ALREADY_EXISTS
@@ -27,6 +28,10 @@ ts3manager = ts3tools.ts3manager(app.config)
 ldaptools = LDAPTools(app.config)
 keytools = KeyTools(app.config)
 emailtools = EmailTools(app.config)
+try:
+	reddittools = RedditTools(app.config,ldaptools)
+except:
+	reddittools = None
 
 @login_manager.user_loader
 def load_user(userid):
@@ -454,6 +459,32 @@ def pingcomplete():
 	results = filter(lambda x:x.lower().startswith(term.lower()), entities+app.config["groups"]["closedgroups"]+app.config["groups"]["opengroups"])
 	return json.dumps(results)
 
+@app.route("/account/reddit")
+@login_required
+def reddit():
+	redirect_uri = app.config["reddit"]["redirect_base"] + url_for('reddit_loop')
+	if hasattr(current_user, "redditAccount"):
+		flash("Already registered with reddit: %s" % (current_user.redditName), "error")
+		return redirect(url_for('services'))
+	r = reddittools.get_reddit_client(redirect_uri)
+	url = r.get_authorize_url(app.config["reddit"]["statekey"], 'identity', False)
+	return redirect(url)
+
+@app.route("/account/reddit/loop")
+@login_required
+def reddit_loop():
+	query = request.args
+	result = reddittools.verify_token(
+			current_user.get_id(),
+			query)
+	
+	if result:
+		user = load_user(current_user.get_id())
+		flash("Successfully updated or added reddit account: %s." % (user.redditName[0],), "success")
+	else:
+		flash("Failed to update reddit account.", "danger")
+
+	return redirect(url_for("index"))
 
 @app.route("/apiv1/group/<string:group>")
 @api_key_required
