@@ -28,9 +28,10 @@ ts3manager = ts3tools.ts3manager(app.config)
 ldaptools = LDAPTools(app.config)
 keytools = KeyTools(app.config)
 emailtools = EmailTools(app.config)
-try:
+
+if "reddit" in app.config:
 	reddittools = RedditTools(app.config,ldaptools)
-except:
+else:
 	reddittools = None
 
 @login_manager.user_loader
@@ -99,7 +100,8 @@ def logout():
 @app.route("/account")
 @login_required
 def account():
-	return render_template("account.html")
+	reddit_flag = "reddit" in app.config
+	return render_template("account.html", reddit_flag=reddit_flag)
 
 @app.route("/account/update", methods=['POST'])
 @login_required

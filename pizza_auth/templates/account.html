@@ -3,6 +3,17 @@
 {% block header %}Account Management{% endblock %}
 {% block body %}
 <div class="row">
+	{% if reddit_flag %}
+	<div class="col-md-4">
+		<div class="panel panel-primary">
+			<div class="panel-heading"><h3 class="panel-title">Reddit Verification</h3></div>
+			<div class="panel-body">
+			<p>Reddit Account: <span class="text-info">{{ current_user.get_reddit_name() }}</span></p>
+			<p><a href="{{ url_for("reddit") }}" class="btn btn-default">Update or Verify</a></p>
+			</div>
+		</div>
+	</div>
+	{% endif %}
 	<div class="col-md-4">
 		<div class="panel panel-primary">
 			<div class="panel-heading"><h3 class="panel-title">Your Account</h3></div>
