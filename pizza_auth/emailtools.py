@@ -8,10 +8,10 @@ import os
 
 class EmailTools():
 
-	def __init__(self, config):
+	def __init__(self, config, loader):
 		self.config = config
 		self.env = Environment()
-		self.env.loader = PackageLoader('pizza_auth')
+		self.env.loader = loader
 
 	def send_email(self, to, subject, body):
 		msg = MIMEText(body)

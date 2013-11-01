@@ -28,7 +28,7 @@ pingbot = announce.pingbot(app.config)
 ts3manager = ts3tools.ts3manager(app.config)
 ldaptools = LDAPTools(app.config)
 keytools = KeyTools(app.config)
-emailtools = EmailTools(app.config)
+emailtools = EmailTools(app.config, app.jinja_loader)
 
 if "reddit" in app.config:
 	reddittools = RedditTools(app.config,ldaptools)
@@ -480,7 +480,7 @@ def reddit_loop():
 	result = reddittools.verify_token(
 			current_user.get_id(),
 			query)
-	
+
 	if result:
 		user = load_user(current_user.get_id())
 		flash("Successfully updated or added reddit account: %s." % (user.redditName[0],), "success")
