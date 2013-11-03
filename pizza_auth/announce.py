@@ -1,4 +1,5 @@
 import xmpp, dns, dns.resolver
+from time import gmtime,strftime
 from ldaptools import LDAPTools
 class pingbot():
 	def __init__(self, config):
@@ -40,9 +41,10 @@ class pingbot():
 		print 'sent message with id',id
 
 	def generatemessage(self, sender, to, message):
+		utctime = strftime("%X +0000", gmtime())
 		result = message
 		result = result+"\n\n"
-		result = result+"== broadcast from %s to %s ==" % (sender, to)
+		result = result+"== broadcast at %s (UTC/EVE) from %s to %s ==" % (utctime, sender, to)
 		return result
 
 	def broadcast(self, sender, to, message, servers):
