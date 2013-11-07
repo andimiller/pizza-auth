@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Admin{% endblock %}
+{% block header %}Admin{% endblock %}
+{% block body %}
+	<div class="col-md-{{ user and 8 or 4 }}">
+		<div class="panel panel-primary">
+			<div class="panel-heading"><h3 class="panel-title">Dump User</h3></div>
+			<div class="panel-body">
+				<form action="/admin">
+					<label for="userid">User ID</label><br /><input class="form-control" rows=6 style="width:100%" type="text" name="userid"></input>
+					<div class="controls">
+						<button type="submit" class="btn btn-primary" value="submit" />Submit</button>
+					</div>
+				</form>
+				{% if user %}
+					<table class="table table-bordered">
+					{% for key, value in user.iteritems() %}
+						<tr>
+							<th> {{ key }} </th>
+							<td> {{ value|length==1 and value[0] or value }} </td>
+						</tr>
+					{% endfor %}
+					</table>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+
+	<div class="col-md-4">
+		<div class="panel panel-primary">
+			<div class="panel-heading"><h3 class="panel-title">Delete User</h3></div>
+			<div class="panel-body">
+				<form action="/admin/deleteuser" method="post">
+					<label for="userid">User ID</label><br /><input class="form-control" rows=6 style="width:100%" type="text" name="userid"></input>
+					<div class="controls">
+						<button type="submit" class="btn btn-danger" value="submit" />Delete</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+{% endblock %}
