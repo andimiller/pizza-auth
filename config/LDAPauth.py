@@ -135,7 +135,8 @@ default = { 'ldap':(('ldap_uri', str, 'ldap://127.0.0.1'),
                     ('number_attr', str, 'RoomNumber'),
                     ('display_attr', str, 'displayName'),
                     ('group_cn', str, 'ou=Groups,dc=example,dc=org'),
-                    ('group_attr', str, 'member')),
+                    ('group_attr', str, 'member'),
+		    ('group_list_attr', str, '')),
 
             'user':(('id_offset', int, 1000000000),
                     ('reject_on_error', x2bool, True)),
@@ -437,7 +438,7 @@ def do_main_program():
                 #Attempt to bind to LDAP server with user-provided credentials
                 ldap_conn = ldap.initialize(cfg.ldap.ldap_uri, 0)
                 ldap_conn.bind_s("%s=%s,%s" % (cfg.ldap.username_attr, name, cfg.ldap.users_dn), pw)
-                res = ldap_conn.search_s(cfg.ldap.users_dn, ldap.SCOPE_SUBTREE, '(%s=%s)' % (cfg.ldap.username_attr, name), [cfg.ldap.number_attr, cfg.ldap.display_attr, 'corporation'])
+                res = ldap_conn.search_s(cfg.ldap.users_dn, ldap.SCOPE_SUBTREE, '(%s=%s)' % (cfg.ldap.username_attr, name), [cfg.ldap.number_attr, cfg.ldap.display_attr, 'corporation', cfg.ldap.group_list_attr ])
                 match = res[0] #Only interested in the first result, as there should only be one match
 
                 #Parse the user information
@@ -446,11 +447,12 @@ def do_main_program():
                 corporation = match[1]['corporation'][0]
                 debug('User match found, display "' + displayName + '" with UID ' + repr(uid))
 
-                #Optionally check groups
+                #Optionally check required group
                 if cfg.ldap.group_cn != "" :
                     debug('Checking group membership for ' + name)
 
                     #Search for user in group
+		    debug('Searching with query: (%s=%s=%s,%s)' % (cfg.ldap.group_attr, cfg.ldap.username_attr, name, cfg.ldap.users_dn))
                     res = ldap_conn.search_s(cfg.ldap.group_cn, ldap.SCOPE_SUBTREE, '(%s=%s=%s,%s)' % (cfg.ldap.group_attr, cfg.ldap.username_attr, name, cfg.ldap.users_dn), [cfg.ldap.number_attr, cfg.ldap.display_attr])
 
                     # Check if the user is a member of the group
@@ -469,6 +471,7 @@ def do_main_program():
                     return (AUTH_REFUSED, None, None)
 
             #If we get here, the login is correct.
+
             if corporation not in CORPORATIONS_TICKER:
                 try:
                     api = eveapi.EVEAPIConnection()
@@ -482,11 +485,17 @@ def do_main_program():
             else:
                 ticker = CORPORATIONS_TICKER[corporation]
 
+	    # Get user's groups
+            member_groups = match[1].get('authGroup', [])
+	    member_groups.append(corporation.lower())
+            debug(member_groups)
+
 
             #Add the user/id combo to cache, then accept:
             self.name_uid_cache[displayName] = uid
             debug("Login accepted for " + name)
-            return (uid + cfg.user.id_offset, ticker + ' - ' + displayName, [])
+	    debug("Returning: %s, %s, %s " % (uid + cfg.user.id_offset, ticker + ' - ' + displayName, member_groups))
+            return (uid + cfg.user.id_offset, ticker + ' - ' + displayName, member_groups)
 
         @fortifyIceFu((False, None))
         @checkSecret
