@@ -35,6 +35,14 @@ class LDAPTools():
 		l.add_s(dn, ldif)
 		l.unbind_s()
 
+	def deletegroup(self, group):
+		l = ldap.initialize(self.config["server"])
+		l.simple_bind(self.config["admin"], self.config["password"])
+		dn = "cn=%s,%s" % (str(group), self.config["groupdn"])
+		l.delete_s(dn)
+		l.unbind_s()
+		return True
+
 	def modts3id(self, uid, change, ts3id):
 		l = ldap.initialize(self.config["server"])
 		l.simple_bind(self.config["admin"], self.config["password"])
