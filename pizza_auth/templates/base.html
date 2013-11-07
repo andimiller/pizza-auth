@@ -49,6 +49,7 @@
 
 				{% if current_user.is_admin() %}
 					<li><a href="/groups/admin">Group Admin</a></li>
+					<li><a href="/admin">Admin</a></li>
 				{% endif %}
 				{% if current_user.can_ping() %}
 					<li><a href="/ping">Pings</a></li>

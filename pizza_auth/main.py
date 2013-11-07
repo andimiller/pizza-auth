@@ -42,7 +42,7 @@ def load_user(userid):
 @app.route("/login", methods=["POST", "GET"])
 def login():
 	if request.method=="GET":
-		return render_template("login.html")
+		return render_template("login.html", next_page=request.args.get("next"))
 	username = request.form["username"]
 	password = request.form["password"]
 	next_page = request.form["next_page"]
@@ -134,6 +134,29 @@ def groups():
 	else:
 		return render_template("groups.html", closed_groups=filter(notyours, app.config["groups"]["closedgroups"]), open_groups=filter(notyours, app.config["groups"]["opengroups"]))
 
+
+@app.route("/admin", methods=["GET", "POST"])
+@login_required
+@group_required("admin")
+def admin():
+	user = None
+	if "userid" in request.args:
+		user = ldaptools.getuser(request.args["userid"])
+		if not user:
+			flash("Cannot find that user", "danger")
+		else:
+			user = user.__dict__
+	return render_template("admintools.html", user=user)
+
+@app.route("/admin/deleteuser", methods=["POST"])
+@login_required
+@group_required("admin")
+def deleteuser():
+	user = request.form["userid"]
+	ldaptools.deleteuser(user)
+	flash("Successful delete for %s" % user, "success")
+	return redirect("/admin")
+
 @app.route("/groups/admin")
 @login_required
 @groups_required(lambda x:x.startswith("admin"))
@@ -142,7 +165,6 @@ def groupadmin():
 		groups = groups=app.config["groups"]["closedgroups"]+app.config["groups"]["opengroups"]
 	else:
 		groups = map(lambda x:x[6:], filter(lambda x:x.startswith("admin-"), current_user.authGroup))
-	print groups
 	pendingusers = ldaptools.getusers("authGroup=*-pending")
 	applications = []
 	for user in pendingusers:
@@ -254,7 +276,6 @@ def group_apply(group):
 	if group in app.config["groups"]["closedgroups"]:
 		group = group+"-pending"
 		join = False
-	print current_user.accountStatus
 	if current_user.accountStatus[0]=="Ineligible":
 		if group not in app.config["groups"]["publicgroups"]:
 			flash("You cannot join that group.", "danger")
@@ -320,8 +341,6 @@ def services():
 @login_required
 def add_tss3id():
 	ts3id = str(request.form["ts3id"])
-	print "trying to auth",ts3id
-	print "account is", current_user.accountStatus[0]
 	ts3group = {
 			"Internal": app.config["ts3"]["servergroups"]["full"],
 			"Ally": app.config["ts3"]["servergroups"]["ally"],
@@ -375,8 +394,7 @@ def signup():
 @app.route('/')
 def index():
 	if current_user.is_anonymous():
-		next_page = request.args.get('next')
-		return render_template("index.html", next_page=next_page)
+		return render_template("index.html")
 	else:
 		return render_template("index_user.html")
 
@@ -400,7 +418,6 @@ def pickcharactername(name):
 	results = []
 	for char in characters:
 		r = {}
-		print char
 		for col, row in zip(char["_cols"], char["_row"]):
 			r[col] = row
 		r["result"] = char["result"]
