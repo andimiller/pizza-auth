@@ -139,7 +139,7 @@ def x2bool(s):
 #
 #--- Default configuration values
 #
-cfgfile = 'LDAPauth.ini'
+cfgfile = 'mumble-pizza-auth.ini'
 default = { 'ldap':(('ldap_uri', str, 'ldap://127.0.0.1'),
 					('users_dn', str, 'ou=Users,dc=example,dc=org'),
 					('username_attr', str, 'uid'),
@@ -168,7 +168,13 @@ default = { 'ldap':(('ldap_uri', str, 'ldap://127.0.0.1'),
 					   ('port', int, '4063')),
 
 			'log':(('level', int, logging.DEBUG),
-				   ('file', str, 'LDAPauth.log'))}
+				   ('file', str, 'LDAPauth.log')),
+			'redis': (('redis_host', str, '127.0.0.1'),
+				('redis_port', int, 6379),
+				('redis_password', str, ''),
+				('redis_system', str, '_mumble_operations'))
+			}
+
 
 #
 #--- Helper classes
