@@ -100,6 +100,7 @@ import ldap
 import Ice
 import thread
 import urllib2
+import random
 import logging
 import ConfigParser
 # corp tags
@@ -109,7 +110,7 @@ import redis
 import redis_wrap
 import arrow
 
-REDIS_CLIENT = redis.StrictRedis(host='localhost', port=6379, db=0)
+REDIS_CLIENT = redis.StrictRedis(host='web-local', port=6379, db=0)
 
 CORPORATIONS_TICKER = {}
 TEMP_OP_EXPIRY_DB = REDIS_CLIENT.hgetall('tempops_expiry')
@@ -124,9 +125,6 @@ from logging	import (debug,
 						critical,
 						exception,
 						getLogger)
-
-operationshash = redis_wrap.get_hash('operations')
-mumblehash = redis_wrap.get_hash('mumble')
 
 def x2bool(s):
 	"""Helper function to convert strings from the config to bool"""
@@ -168,7 +166,7 @@ default = { 'ldap':(('ldap_uri', str, 'ldap://127.0.0.1'),
 					   ('port', int, '4063')),
 
 			'log':(('level', int, logging.DEBUG),
-				   ('file', str, 'LDAPauth.log')),
+				   ('file', str, 'mumble-pizza-auth.log')),
 			'redis': (('redis_host', str, '127.0.0.1'),
 				('redis_port', int, 6379),
 				('redis_password', str, ''),
@@ -490,7 +488,7 @@ def do_main_program():
 					# is the op still valid?
 					if user_info['op_hash'] in operationshash:
 						if user_info['password'] == pw:
-							return (random.choice(range(500000,1000000)) + cfg.user.id_offset, 'GUEST %s' % (user_info['display_name']), [])
+							return (random.choice(range(500000,1000000)) + cfg.user.id_offset, 'GUEST - %s' % (user_info['display_name']), [])
 
 				# It was actually a bad login
 				warning("User " + name + " failed with wrong password")
@@ -733,6 +731,13 @@ if __name__ == '__main__':
 	except Exception, e:
 		print>>sys.stderr, 'Fatal error, could not load config file from "%s"' % cfgfile
 		sys.exit(1)
+
+	redis_wrap.setup_system(
+		cfg.redis.redis_system,
+		cfg.redis.redis_host,
+		cfg.redis.redis_port)
+	operationshash = redis_wrap.get_hash('operations', cfg.redis.redis_system)
+	mumblehash = redis_wrap.get_hash('mumble', cfg.redis.redis_system)
 
 
 	# Initialize logger
