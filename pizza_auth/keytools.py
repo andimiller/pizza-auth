@@ -36,6 +36,18 @@ class KeyTools():
 		auth = accountstatusapi.auth(keyID=character.keyID, vCode=character.vCode)
 		return datetime.datetime.fromtimestamp(auth.account.AccountStatus().paidUntil)
 
+	def getInfo(self, user):
+		try:
+			auth = self.getapi(user)
+			characters = auth.account.Characters().characters
+			for character in characters:
+				if character.name == user.characterName[0]:
+					return auth.eve.CharacterInfo(characterID=character.characterID)
+		except:
+			return False
+
+
+
 	def getCharacterStanding(self, character):
 		if character.allianceName == self.authconfig["auth"]["alliance"]:
 			return "Internal"
