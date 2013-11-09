@@ -106,6 +106,7 @@ import ConfigParser
 import eveapi
 # temporary operations
 import redis
+import redis_wrap
 import arrow
 
 REDIS_CLIENT = redis.StrictRedis(host='localhost', port=6379, db=0)
@@ -113,6 +114,7 @@ REDIS_CLIENT = redis.StrictRedis(host='localhost', port=6379, db=0)
 CORPORATIONS_TICKER = {}
 TEMP_OP_EXPIRY_DB = REDIS_CLIENT.hgetall('tempops_expiry')
 
+from ast	import literal_eval
 from threading  import Timer
 from optparse   import OptionParser
 from logging	import (debug,
@@ -122,6 +124,9 @@ from logging	import (debug,
 						critical,
 						exception,
 						getLogger)
+
+operationshash = redis_wrap.get_hash('operations')
+mumblehash = redis_wrap.get_hash('mumble')
 
 def x2bool(s):
 	"""Helper function to convert strings from the config to bool"""
@@ -474,28 +479,13 @@ def do_main_program():
 			#LDAP bind failed - expected to happen if bad login
 			except ldap.INVALID_CREDENTIALS:
 				# Check if it's a user trying to register with a temporary operation code
-				if name.count("|"):
-					operation, username = name.split("|")
-					print operation, username
-					if operation in TEMP_OP_EXPIRY_DB:
-						print "op is valid"
-						time = arrow.get(TEMP_OP_EXPIRY_DB[operation])
-						print time
-						if time < arrow.now():
-							print "op expired, deleting"
-							# op has expired
-							REDIS_CLIENT.hdel("tempops_expiry", operation)
-							REDIS_CLIENT.delete(operation)
-							TEMP_OP_EXPIRY_DB = REDIS_CLIENT.hgetall('tempops_expiry')
-						else:
-							print "op is valid"
-							# operation is still valid
-							password, display_name - REDIS_CLIENT.hget(operation, user)
-							print password, display_name
-							if pw == password:
-								return (random.choice(range(500000, 1000000)) + cfg.user.id_offset, "GUEST - %s" % display_name, [])
-					else:
-						print "op is invalid"
+				if name in mumblehash:
+					user_info = literal_eval(mumblehash[name])
+					# is the op still valid?
+					if user_info['op_hash'] in operationshash:
+						if user_info['password'] == pw:
+							return (random.choice(range(500000,1000000)) + cfg.user.id_offset, 'GUEST %s' % (user_info['display_name']), [])
+
 				# It was actually a bad login
 				warning("User " + name + " failed with wrong password")
 				return (AUTH_REFUSED, None, None)
