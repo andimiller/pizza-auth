@@ -199,6 +199,8 @@ def generateuser(opkey):
 	return render_template("mumblegenerate.html", userhash = user_hash)
 
 @app.route("/dumper")
+@login_required
+@group_required("admin")
 def dumpheaders():
 	return "%s" % (str(request.headers),)
 
