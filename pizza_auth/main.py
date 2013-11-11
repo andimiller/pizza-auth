@@ -181,7 +181,7 @@ def generateop():
 @app.route("/mumble/generateuser/<opkey>")
 def generateuser(opkey):
 	hdrs = request.headers
-	if hdrs.get('Eve-Trusted', 'empty').lower() == 'no':
+	if hdrs.get('Eve-Trusted', 'empty').lower() != 'yes':
 		flash("You must trust this site to use this feature.", "danger")
 		return render_template("trustneeded.html")
 	charactername = hdrs.get('Eve-Charname', "BAD KITTY")
