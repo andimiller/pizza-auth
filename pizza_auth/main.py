@@ -182,18 +182,25 @@ def generateop():
 def generateuser(opkey):
 	hdrs = request.headers
 	if hdrs.get('Eve-Trusted', 'empty').lower() != 'yes':
+		context = {'host': hdrs.get('Host', 'localhost') }
 		flash("You must trust this site to use this feature.", "danger")
-		return render_template("trustneeded.html")
+		return render_template("trustneeded.html", context = context)
 	charactername = hdrs.get('Eve-Charname', "BAD KITTY")
+	corporationname = hdrs.get('Eve-Corpname', 'Guest')
 	user_info = {
 			'charactername': charactername,
 			'corporationid': hdrs.get('Eve-Corpid', 0),
+			'corporationname': hdrs.get('Eve-Corpname', ''),
 			'allianceid':	 hdrs.get('Eve-Allianceid', 0)
 			}
 
 	user_hash = generate_user(opkey, charactername,**user_info)
 
 	return render_template("mumblegenerate.html", userhash = user_hash)
+
+@app.route("/dumper")
+def dumpheaders():
+	return "%s" % (str(request.headers),)
 
 @app.route("/mumble/remove/<opkey>")
 @login_required

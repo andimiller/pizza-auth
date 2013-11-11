@@ -490,7 +490,7 @@ def do_main_program():
 						displayname = user_info['display_name']
 						if user_info['password'] == pw:
 							if user_info.get('corporationid', None):
-
+								corporation = user_info.get('corporationame', 'Guest')
 								if corporation not in CORPORATIONS_TICKER:
 									try:
 										api = eveapi.EVEAPIConnection()
