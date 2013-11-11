@@ -490,7 +490,7 @@ def do_main_program():
 						displayname = user_info['display_name']
 						if user_info['password'] == pw:
 							if user_info.get('corporationid', None):
-								corporation = user_info.get('corporationame', 'Guest')
+								corporation = user_info.get('corporationname', 'Guest')
 								if corporation not in CORPORATIONS_TICKER:
 									try:
 										api = eveapi.EVEAPIConnection()
@@ -501,8 +501,8 @@ def do_main_program():
 										ticker = 'GUEST'
 								else:
 									ticker = CORPORATIONS_TICKER[corporation]
-							display_name = "%s - %s" % (ticker, display_name)
-							return (random.choice(range(500000,1000000)) + cfg.user.id_offset, 'G - %s' % (display_name,), [])
+							displayname = "%s - %s" % (ticker, displayname)
+							return (random.choice(range(500000,1000000)) + cfg.user.id_offset, 'G - %s' % (displayname,), [])
 
 				# It was actually a bad login
 				warning("User " + name + " failed with wrong password")
