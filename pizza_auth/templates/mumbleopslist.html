@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Mumble Op List - {{ group }}{% endblock %}
+{% block header %}Mumble Op List - {{ group }}{% endblock %}
+{% block body %}
+<div class="row">
+	<div class="col-md-4 panel panel-primary">
+			<div class="panel-heading"><h3 class="panel-title">Add Op</h3></div>
+			<div class="panel-body form-group">
+				<form role="form" class="panel-body form-inline span8 custom-form" name="form" action="/mumble/admin/add" method="post">
+					<label for="op_name">Op Name (req'd)</label><br />
+					<input class="form-control" style="width:100%" type="text" name="op_name" placeholder="Generic Op"></input>
+					<label for="op_fc">Op FC (optional)</label><br />
+					<input class="form-control" style="width:100%" type="text" name="op_fc" placeholder="Fleet Commander X"></input>
+					<div class="controls form-group">
+						<button type="submit" class="btn btn-primary" value="submit">Create</button>
+					</div>
+				</form>
+			</div>
+	</div>
+</div>
+<div class="row">
+	<div class="col-md-12">
+		<table class="table table-striped">
+			<tr>
+				<th>Op Name</th><th>Op FC</th><th>Mumble Channel</th><th>Fleet URL</th><th>Actions</th>
+			</tr>
+			{% for op in operations %}
+			<tr>
+				<td>{{ op.op_name }}</td>
+				<td>{{ op.op_fc }}</td>
+				<td>{{ op.op_channel }}</td>
+				<td>http://auth.talkinlocal.org/mumble/generateuser/{{ op.op_hash }}</td>
+				<td>
+					<div class="btn-group pull-right">
+						<a class="btn btn-xs btn-danger" href="/mumble/remove/{{ op.op_hash }}">Remove</a>
+					</div>
+				</td>
+			</tr>
+			{% endfor %}
+		</table>
+	</div>
+</div class="row">
+{% endblock %}

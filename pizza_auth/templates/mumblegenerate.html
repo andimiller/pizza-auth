@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Mumble Op Generator {% endblock %}
+{% block header %}Mumble Op Access {% endblock %}
+{% block body %}
+<div class="row">
+	<div class="col-md-8">
+		<div class="panel panel-primary">
+			<div class="panel-heading"><h3 class="panel-title">Mumble Op Login</h3></div>
+			<div class="panel-body">
+				<p>Mumble Username: <span class="text-info">{{ userhash.username }}</span></p>
+				<p>Mumble Password: <span class="text-info">{{ userhash.password }}</span></p>
+				<p>Server: <span class="text-info">{{ config["mumble"]["server"] }}</span></p>
+				
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

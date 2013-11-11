@@ -487,8 +487,22 @@ def do_main_program():
 					user_info = literal_eval(mumblehash[name])
 					# is the op still valid?
 					if user_info['op_hash'] in operationshash:
+						displayname = user_info['display_name']
 						if user_info['password'] == pw:
-							return (random.choice(range(500000,1000000)) + cfg.user.id_offset, 'GUEST - %s' % (user_info['display_name']), [])
+							if user_info.get('corporationid', None):
+
+								if corporation not in CORPORATIONS_TICKER:
+									try:
+										api = eveapi.EVEAPIConnection()
+										corporation_sheet = api.corp.CorporationSheet(corporationID=userinfo['corporationid'])
+										ticker = CORPORATIONS_TICKER[corporation] = corporation_sheet.ticker
+									except Exception, e:
+										warning('Could not retrieve Ticker for corporation {corporation}'.format(corporation=corporation))
+										ticker = 'GUEST'
+								else:
+									ticker = CORPORATIONS_TICKER[corporation]
+							display_name = "%s - %s" % (ticker, display_name)
+							return (random.choice(range(500000,1000000)) + cfg.user.id_offset, 'G - %s' % (display_name,), [])
 
 				# It was actually a bad login
 				warning("User " + name + " failed with wrong password")

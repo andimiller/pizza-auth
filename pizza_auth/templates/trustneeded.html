@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Mumble Op Access - Trust Generation {% endblock %}
+{% block header %}Mumble Op Access {% endblock %}
+{% block body %}
+<div class="row">
+	<div class="col-md-8">
+		<div class="panel panel-primary">
+			<div class="panel-heading"><h3 class="panel-title">Trust Request</h3></div>
+			<div class="panel-body">
+			<p>
+			Trust is required to use this auth feature. After trusting the site, click the refresh button at the top of the in-game browers window.
+			<br/>
+			<br/><a href="javascript:CCPEVE.requestTrust('http://dev.{{ config["auth"]["domain"] }}:8090');" class="btn btn-info">Request Trust</a>
+			</p>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

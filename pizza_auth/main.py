@@ -1,4 +1,5 @@
 import json
+import ast
 from flask import Flask, flash, session, render_template, redirect, request, abort, url_for, escape
 from flask.ext.login import LoginManager, login_user, logout_user, login_required, current_user
 import ts3tools, announce
@@ -6,6 +7,7 @@ from ldaptools import LDAPTools
 from keytools import KeyTools
 from emailtools import EmailTools
 from reddittools import RedditTools
+from redisutils import *
 from authutils import groups_required, group_required, api_key_required
 from collections import namedtuple
 from ldap import ALREADY_EXISTS
@@ -147,6 +149,63 @@ def admin():
 		else:
 			user = user.__dict__
 	return render_template("admintools.html", user=user)
+
+@app.route("/mumble")
+@login_required
+@group_required("mumble")
+def mumbleopslist():
+	ops = operationshash.keys()
+	operations = []
+	for opkey in ops:
+		op_data = literal_eval(operationshash[opkey])
+		op_data.update({'op_hash': opkey})
+		operations.append(op_data)
+
+	return render_template("mumbleopslist.html", operations=operations)
+
+@app.route("/mumble/admin/add", methods=["POST"])
+@login_required
+@group_required("mumble")
+def generateop():
+	form = request.form
+	op_name = form["op_name"]
+	op_fc = form.get("op_fc", None)
+	op_info = {}
+	if op_fc:
+		op_info.update({'op_fc': op_fc})
+	
+	generate_op(op_name, **op_info)
+	flash("Generated Operation.", "success")
+	return redirect("/mumble")
+
+@app.route("/mumble/generateuser/<opkey>")
+def generateuser(opkey):
+	hdrs = request.headers
+	if hdrs.get('Eve-Trusted', 'empty').lower() == 'no':
+		flash("You must trust this site to use this feature.", "danger")
+		return render_template("trustneeded.html")
+	charactername = hdrs.get('Eve-Charname', "BAD KITTY")
+	user_info = {
+			'charactername': charactername,
+			'corporationid': hdrs.get('Eve-Corpid', 0),
+			'allianceid':	 hdrs.get('Eve-Allianceid', 0)
+			}
+
+	user_hash = generate_user(opkey, charactername,**user_info)
+
+	return render_template("mumblegenerate.html", userhash = user_hash)
+
+@app.route("/mumble/remove/<opkey>")
+@login_required
+@group_required("mumble")
+def removemumbleop(opkey):
+	users = get_op_users(opkey)
+	if destroy_op(opkey):
+		flash("Successful delete for operation %s." % (opkey,), "success")
+		flash("Deleted users: %s" % (", ".join(users),), "success")
+	else:
+		flash("Something went wrong deleting operation %s." % (opkey,), "danger")
+	return redirect("/mumble")
 
 @app.route("/admin/deleteuser", methods=["POST"])
 @login_required

@@ -51,6 +51,16 @@ def confirm_op(op_hash):
 def confirm_user(username):
 	return username in mumblehash
 
+def get_op_users(op_hash):
+	user_list = []
+	if confirm_op(op_hash):
+		for username in mumblehash.keys():
+			tmp_dict = literal_eval(mumblehash[username])
+			if 'op_hash' in tmp_dict:
+				if tmp_dict['op_hash'] == op_hash:
+					user_list.append(username)
+	return user_list
+
 def destroy_user(username):
 	if confirm_user(username):
 		del(mumblehash[username])
