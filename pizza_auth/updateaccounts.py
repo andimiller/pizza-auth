@@ -54,12 +54,21 @@ if __name__ == "__main__":
 			if character.alliance[0] != newcharacter["allianceName"]:
 				logger.info( "%s alliance update \t %s -> %s" % ( character.get_id(), character.alliance[0], newcharacter["allianceName"]) )
 				if create:
-					ldaptools.modattr(character.get_id(), MOD_ADD, "alliance", newcharacter["allianceName"])
+					try:
+						ldaptools.modattr(character.get_id(), MOD_ADD, "alliance", newcharacter["allianceName"])
+
+					except ldap.TYPE_OR_VALUE_EXISTS:
+						# Sneaky devil
+						# alliances can change
+						ldaptools.modattr(character.get_id(), MOD_REPLACE, "alliance", newcharacter["allianceName"])
+
 				else:
 					ldaptools.modattr(character.get_id(), MOD_REPLACE, "alliance", newcharacter["allianceName"])
 			if character.corporation[0] != newcharacter["corporationName"]:
 				logger.info( "%s corp update \t %s -> %s" % ( character.get_id(), character.corporation[0], newcharacter["corporationName"]) )
 				ldaptools.modattr(character.get_id(), MOD_REPLACE, "corporation", newcharacter["corporationName"])
+		
+
 
 		except RuntimeError:
 			if ("Expired" not in character.accountStatus) and (character.get_id() not in safecharacters):
