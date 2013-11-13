@@ -1,4 +1,4 @@
-import xmpp, dns, dns.resolver
+import xmpp, dns, dns.resolver, sys
 from time import gmtime,strftime
 from ldaptools import LDAPTools
 class pingbot():
