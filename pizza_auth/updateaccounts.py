@@ -43,7 +43,7 @@ if __name__ == "__main__":
 				results[r["name"]] = r
 			assert(character.characterName[0] in results)
 			newcharacter = results[character.characterName[0]]
-			if character.accountStatus[0] != newcharacter["result"]:
+			if (character.accountStatus[0] != newcharacter["result"]) and (character.get_id() not in safecharacters):
 				logger.info( "%s status update \t %s -> %s" % ( character.get_id(), character.accountStatus[0], newcharacter["result"]) )
 				ldaptools.modattr(character.get_id(), MOD_REPLACE, "accountStatus", newcharacter["result"])
 
