@@ -12,6 +12,7 @@ from ldap import ALREADY_EXISTS
 from ldap import MOD_ADD, MOD_DELETE, MOD_REPLACE
 import string, random
 import redis_wrap
+from updateaccounts import update_characters
 
 app = Flask(__name__)
 
@@ -108,20 +109,34 @@ def account():
 @login_required
 def update_account():
 	email = request.form["email"]
-	password = request.form["password"]
-	if "oldpassword" in request.form:
-		oldpassword = request.form["oldpassword"]
-		if not ldaptools.check_credentials(current_user.get_id(), oldpassword):
-			flash("You must confirm your old password to update your account.", "danger")
-			return redirect("/account")
+	oldpassword = request.form["oldpassword"]
+	api_id = request.form["api_id"]
+	api_key = request.form["api_key"]
+	update_needed = False
+	if api_id != current_user.keyID[0] or api_key != current_user.vCode[0]:
+		update_needed = True
+	if not ldaptools.check_credentials(current_user.get_id(), oldpassword):
+		flash("You must confirm your old password to update your account.", "danger")
+		return redirect("/account")
 	try:
+		if all(x in request.form for x in ["password", "password_confirm", "oldpassword"]):
+			if request.form["password"] != request.form["password_confirm"]:
+				flash("Password confirmation mismatch.", "danger")
+				return redirect("/account")
+			result = ldaptools.modattr(current_user.get_id(), MOD_REPLACE, "userPassword", ldaptools.makeSecret(request.form["password"]))
+			assert(result)
 		result = ldaptools.modattr(current_user.get_id(), MOD_REPLACE, "email", email)
 		assert(result)
-		result = ldaptools.modattr(current_user.get_id(), MOD_REPLACE, "userPassword", ldaptools.makeSecret(password))
+		result = ldaptools.modattr(current_user.get_id(), MOD_REPLACE, "keyID", api_id)
+		assert(result)
+		result = ldaptools.modattr(current_user.get_id(), MOD_REPLACE, "vCode", api_key)
 		assert(result)
 		flash("Account updated", "success")
 	except Exception:
 		flash("Update failed", "danger")
+	if update_needed is True:
+		update_characters([current_user.get_id()])
+	app.logger.info('User account {0} infos changed'.format(current_user.get_id()))
 	return redirect("/account")
 
 @app.route("/groups")

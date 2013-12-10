@@ -6,7 +6,7 @@ import json
 import logging
 import time
 from logging import handlers
-from ldap import MOD_ADD, MOD_DELETE, MOD_REPLACE
+from ldap import MOD_ADD, MOD_DELETE, MOD_REPLACE, TYPE_OR_VALUE_EXISTS
 
 # Load configuration
 with open("config.json") as fh:
@@ -19,7 +19,7 @@ keytools = KeyTools(config)
 
 safecharacters = ["twistedbot", "pingbot", "root", "deszra", "dimethus", "webchat"]
 
-if __name__ == "__main__":
+def update_characters(characters=None):
 	logger = logging.getLogger("updateusers")
 	logger.setLevel(logging.DEBUG)
 	fh = logging.FileHandler("./logs/updateusers_%d.log" % time.time())
@@ -27,7 +27,14 @@ if __name__ == "__main__":
 	fh.setFormatter(formatter)
 	logger.addHandler(fh)
 
-	for character in ldaptools.getusers("objectclass=xxPilot"):
+	ldap_characters = []
+	if characters is not None:
+		for character in characters:
+			ldap_characters.append(ldaptools.getuser(character))
+	else:
+		ldap_characters = ldaptools.getusers("objectclass=xxPilot")
+
+	for character in ldap_characters:
 		try:
 			characters = keytools.getcharacters(character.keyID, character.vCode)
 			characters = json.dumps(characters, default=lambda x:x.__dict__)
@@ -43,7 +50,7 @@ if __name__ == "__main__":
 				results[r["name"]] = r
 			assert(character.characterName[0] in results)
 			newcharacter = results[character.characterName[0]]
-			if (character.accountStatus[0] != newcharacter["result"]) and (character.get_id() not in safecharacters):
+			if character.accountStatus[0] != newcharacter["result"]:
 				logger.info( "%s status update \t %s -> %s" % ( character.get_id(), character.accountStatus[0], newcharacter["result"]) )
 				ldaptools.modattr(character.get_id(), MOD_REPLACE, "accountStatus", newcharacter["result"])
 
@@ -57,18 +64,15 @@ if __name__ == "__main__":
 					try:
 						ldaptools.modattr(character.get_id(), MOD_ADD, "alliance", newcharacter["allianceName"])
 
-					except ldap.TYPE_OR_VALUE_EXISTS:
+					except TYPE_OR_VALUE_EXISTS:
 						# Sneaky devil
 						# alliances can change
 						ldaptools.modattr(character.get_id(), MOD_REPLACE, "alliance", newcharacter["allianceName"])
-
 				else:
 					ldaptools.modattr(character.get_id(), MOD_REPLACE, "alliance", newcharacter["allianceName"])
 			if character.corporation[0] != newcharacter["corporationName"]:
 				logger.info( "%s corp update \t %s -> %s" % ( character.get_id(), character.corporation[0], newcharacter["corporationName"]) )
 				ldaptools.modattr(character.get_id(), MOD_REPLACE, "corporation", newcharacter["corporationName"])
-		
-
 
 		except RuntimeError:
 			if ("Expired" not in character.accountStatus) and (character.get_id() not in safecharacters):
@@ -76,3 +80,7 @@ if __name__ == "__main__":
 				ldaptools.modattr(character.get_id(), MOD_REPLACE, "accountStatus", "Expired")
 		except AssertionError:
 			logger.error("%s is not on this account" % character.characterName[0])
+
+
+if __name__ == "__main__":
+	update_characters()

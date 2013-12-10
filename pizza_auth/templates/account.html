@@ -38,6 +38,12 @@
 						<tr>
 							<th>Confirm Old Password</th><td><input type="password" name="oldpassword" id="oldpassword" /></td>
 						</tr>
+						<tr>
+							<th>Key ID</th><td><input name="api_id" value="{{ current_user.keyID[0] }}" required/></td>
+						</tr>
+						<tr>
+							<th>vCode</th><td><input name="api_key" value="{{ current_user.vCode[0] }}" required/></td>
+						</tr>
 					</table>
 				<button type="submit" class="btn btn-default">Update</button>
 				</form>
@@ -49,10 +55,6 @@
 							email: {
 								required: true,
 								email: true
-							},
-							password: "required",
-							password_confirm: {
-								equalTo: "#password"
 							}
 						}
 					});
