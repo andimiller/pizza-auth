@@ -172,6 +172,15 @@ def deleteuser():
 	flash("Successful delete for %s" % user, "success")
 	return redirect("/admin")
 
+@app.route("/admin/updateuser", methods=["POST"])
+@login_required
+@group_required("admin")
+def updateuser():
+	user = request.form["userid"]
+	update_characters([user])
+	flash("Successful update for %s" % user, "success")
+	return redirect("/admin")
+
 @app.route("/groups/admin")
 @login_required
 @groups_required(lambda x:x.startswith("admin"))

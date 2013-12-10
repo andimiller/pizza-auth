@@ -39,4 +39,18 @@
 			</div>
 		</div>
 	</div>
+	<div class="col-md-4">
+		<div class="panel panel-primary">
+			<div class="panel-heading"><h3 class="panel-title">Force update User</h3></div>
+			<div class="panel-body">
+				<form action="/admin/updateuser" method="post">
+					<label for="userid">User ID</label><br /><input class="form-control" rows=6 style="width:100%" type="text" name="userid"></input>
+					<div class="controls">
+						<br>
+						<button type="submit" class="btn btn-warning" value="submit" />Update</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
 {% endblock %}
