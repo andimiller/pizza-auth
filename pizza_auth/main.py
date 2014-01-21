@@ -365,6 +365,15 @@ def services():
 @login_required
 def add_tss3id():
 	ts3id = str(request.form["ts3id"])
+	if len(ts3id)==0:
+		flash("You must enter a non-null TeamSpeak 3 Identity.", "danger")
+		return redirect("/services")
+	elif len(ts3id)!=28:
+		flash("The TeamSpeak 3 Identity you entered is of an invalid length.", "danger")
+		return redirect("/services")
+	elif ts3id[len(ts3id)-1]!="\=":
+		flash("The TeamSpeak 3 Identity you entered is in an invalid format.", "danger")
+		return redirect("/services")
 	ts3group = {
 			"Internal": app.config["ts3"]["servergroups"]["full"],
 			"Ally": app.config["ts3"]["servergroups"]["ally"],
