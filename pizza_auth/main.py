@@ -371,7 +371,7 @@ def add_tss3id():
 	elif len(ts3id)!=28:
 		flash("The TeamSpeak 3 Identity you entered is of an invalid length.", "danger")
 		return redirect("/services")
-	elif ts3id[len(ts3id)-1]!="\=":
+	elif ts3id[len(ts3id)-1]!="=":
 		flash("The TeamSpeak 3 Identity you entered is in an invalid format.", "danger")
 		return redirect("/services")
 	ts3group = {
